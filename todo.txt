@@ -1,0 +1,14 @@
+
+
+- Find a better way to search tables for entries (bear in mind that a hash map wont work as we dont know how much we are matching from the main string)
+ - Maybe some sort of binary tree?
+ - Or maybe break a set down into a list of hashmaps arranged by the size of the string
+- Add Shoco to our tests and compare
+- Implement Serde for CodeType to serialise it into bytes via bincode
+- Add the non-printables we removed from the ascii table to the 2 byte common list
+- Add repeatable sequences allowing up to 30 repetitions. Repetitions include ascii characters, and also other strings commonly repeated ('hehe',. 'ha ha', 'soooooo', etc.)
+- Add n't and dot space to one byte wonder maybe
+- Re order lists such that bigger words like 'download' match before their substrings like 'down'
+- Create a struct that allows users to compress and decompress using customizable options. Add convenience functions that doo this with default options
+- Match repetitions before numbers and compare which is better
+- Should we add a 'prefix space' bit to the two and three byte representations? At the expense of having to move half of the 2 byte common lemmas out of the list?
