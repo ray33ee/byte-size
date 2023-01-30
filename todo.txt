@@ -5,9 +5,7 @@
     - Use rust's b tree and create our own custom type and custom comparison algorithm using the `Ord` trait
         - Make sure this algorithm matches an entry like 'download' before 'down'. (i.e. given 2 strings that have the same beginning, the larget should match)
  - Or maybe break a set down into a list of hashmaps arranged by the size of the string
-- Add Shoco to our tests and compare
 - Implement Serde for CodeType to serialise it into bytes via bincode
-- Add the non-printables we removed from the ascii table to the 2 byte common list
 - Add repeatable sequences allowing up to 32 repetitions
     - Repetitions include ascii characters, and also other strings commonly repeated ('hehe',. 'ha ha', 'soooooo', etc.).
     - Create a special ascii table that includes commonly repeaded sequences in the gaps

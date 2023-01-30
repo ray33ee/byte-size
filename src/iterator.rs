@@ -1,5 +1,5 @@
 use std::str::from_utf8_unchecked;
-use crate::tables::{ONE_BYTE_WONDER, TWO_BYTE_COMMON, THREE_BYTE_UNCOMMON};
+use crate::tables::{ONE_BYTE_WONDER, TWO_BYTE_COMMON, THREE_BYTE_UNCOMMON, CONTROLS};
 use crate::ir::{CodeType};
 
 pub (crate) struct CodeIterator<'a> {
@@ -179,6 +179,13 @@ impl<'a> CodeIterator<'a> {
             }
 
         } else {
+            //It might be a non-printable
+
+            if let Ok(pos) = CONTROLS.binary_search(&self.main[0]) {
+                return (1, CodeType::Unprintable(pos as u32))
+            }
+
+
             //If none of the above encoding schemes work, we just encode a single ascii character
             (1, CodeType::OneByteWonder(self.main[0] as u32))
         }
