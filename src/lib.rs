@@ -16,7 +16,7 @@ mod tests {
     fn it_works() {
         use smaz::compress;
 
-        let message =  "Nel mezzo del cammin di nostra vita, mi ritrovai in una selva oscura";
+        let message =  "http://github.com/antirez/smaz/tree/master";
 
         let code_len = CodeIterator::new(message).fold(0usize, |sum, x| sum + x.len());
 
@@ -28,26 +28,24 @@ mod tests {
         println!("Smaz: {}", compress(message.as_bytes()).len());
         //println!("Shoco: {}", shoco_rs::compress(message).len());
 
-        /*
-        let str = std::fs::read_to_string(".\\20k.txt").unwrap();
+
+        /*let str = std::fs::read_to_string(".\\.3m.txt").unwrap();
 
         let mut count = 0;
 
         for line in str.lines() {
+
+            let line = line.split_whitespace().nth(0).unwrap();
+
             let code_len = CodeIterator::new(line).fold(0usize, |sum, x| sum + x.len());
 
             if code_len > 3 {
                 print!("{:?}, ", line);
-
-
                 count += 1;
-
-                if count == 15872 {
+                if count == 16384 {
                     break;
                 }
-
             }
-
         }*/
 
 

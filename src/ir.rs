@@ -5,6 +5,7 @@ pub (crate) enum CodeType {
     OneByteWonder(u32),
     TwoByteCommon(bool, u32),
     ThreeByteUncommon(bool, u32),
+    UnicodeChar(char),
     Number(u128),
 }
 
@@ -24,6 +25,9 @@ impl CodeType {
                 //println!("Number {} Encoded with {} bytes.", n, count);
                 count
             }
+            CodeType::UnicodeChar(c) => {
+                c.len_utf8()+1
+            }
         }
     }
 }
@@ -42,6 +46,9 @@ impl std::fmt::Debug for CodeType {
             }
             CodeType::Number(num) => {
                 write!(f, "Number({})", *num)
+            }
+            CodeType::UnicodeChar(ch) => {
+                write!(f, "UnicodeChar({:?})", *ch)
             }
         }
     }

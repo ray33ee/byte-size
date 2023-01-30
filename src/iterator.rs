@@ -127,7 +127,14 @@ impl<'a> CodeIterator<'a> {
             return (length, CodeType::Number(number))
         }
 
-
+        //If we have a non-ascii character, encode as a unicode scalar value
+        {
+            let s = unsafe { from_utf8_unchecked(self.main) };
+            let first = s.chars().nth(0).unwrap();
+            if !first.is_ascii() {
+                return (first.len_utf8(), CodeType::UnicodeChar(first))
+            }
+        }
 
         let list = [self.try_lemma_dict(TWO_BYTE_COMMON.as_slice(), 2f32, true), self.try_lemma_dict(THREE_BYTE_UNCOMMON.as_slice(), 3f32, true), self.try_wonder()];
 
