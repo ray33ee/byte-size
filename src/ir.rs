@@ -1,22 +1,23 @@
-
+use std::fmt::{Formatter};
 use crate::tables::{ONE_BYTE_WONDER, TWO_BYTE_COMMON, THREE_BYTE_UNCOMMON, CONTROLS};
 
+#[derive(PartialEq)]
 pub (crate) enum CodeType {
     ///Represents all possible values encoded with a single byte.
     /// This includes all ascii characters as well as a bunch of common sequences.
     ///
     /// Based off the `ONE_BYTE_WONDER` list
-    OneByteWonder(u32),
+    OneByteWonder(usize),
 
     ///Represents all possible values encoded with two bytes.
     ///
     /// See readme for more information
-    TwoByteCommon(bool, u32),
+    TwoByteCommon(bool, usize),
 
     ///Represents all possible values encoded with three bytes.
     ///
     /// See readme for more information
-    ThreeByteUncommon(bool, u32),
+    ThreeByteUncommon(bool, usize),
 
     ///Represents all unicode scalar values.
     ///
@@ -29,12 +30,14 @@ pub (crate) enum CodeType {
     ///Represents the unprintable ascii control bytes.
     ///
     /// Represented as 2 bytes
-    Unprintable(u32),
+    Unprintable(usize),
+
+    Repetitions(u32, usize),
 }
 
 impl CodeType {
     pub fn len(&self) -> usize {
-        match self {
+        let l = match self {
             CodeType::OneByteWonder(_) => {1}
             CodeType::TwoByteCommon(_, _) => {2}
             CodeType::ThreeByteUncommon(_, _) => {3}
@@ -52,7 +55,18 @@ impl CodeType {
                 c.len_utf8()+1
             }
             CodeType::Unprintable(_) => {2}
-        }
+            CodeType::Repetitions(_, _) => {3}
+        };
+
+        let mut v = Vec::new();
+
+        self.serialize_into(& mut v);
+
+
+
+        assert_eq!(l, v.len());
+
+        l
     }
 }
 
@@ -75,7 +89,38 @@ impl std::fmt::Debug for CodeType {
                 write!(f, "UnicodeChar({:?})", *ch)
             }
             CodeType::Unprintable(ch) => {
-                write!(f, "UnicodeChar(\'\\x{:02x}\')", CONTROLS[*ch as usize])
+                write!(f, "Unprintable(\'\\x{:02x}\')", CONTROLS[*ch as usize])
+            }
+            CodeType::Repetitions(_, _) => {
+                todo!()
+            }
+        }
+    }
+}
+
+impl std::fmt::Display for CodeType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CodeType::OneByteWonder(index) => {
+                write!(f, "{}", ONE_BYTE_WONDER[*index])
+            }
+            CodeType::TwoByteCommon(space, index) => {
+                write!(f, "{}{}", if *space { " " } else { "" }, TWO_BYTE_COMMON[*index as usize])
+            }
+            CodeType::ThreeByteUncommon(space, index) => {
+                write!(f, "{}{}", if *space { " " } else { "" }, THREE_BYTE_UNCOMMON[*index as usize])
+            }
+            CodeType::UnicodeChar(ch) => {
+                write!(f, "{}", *ch)
+            }
+            CodeType::Number(num) => {
+                write!(f, "{}", *num)
+            }
+            CodeType::Unprintable(index) => {
+                write!(f, "{}", CONTROLS[*index as usize])
+            }
+            CodeType::Repetitions(_, _) => {
+                todo!()
             }
         }
     }

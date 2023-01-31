@@ -71,11 +71,11 @@ impl<'a> CodeIterator<'a> {
         Some((large, length))
     }
 
-    fn try_wonder(&self) -> Option<(u32, usize, f32, bool)> {
+    fn try_wonder(&self) -> Option<(usize, usize, f32, bool)> {
         for (i, entry) in ONE_BYTE_WONDER.iter().enumerate() {
             if i < 32 || i > 126 {
                 if self.compare(entry.as_bytes()) {
-                    return Some((i as u32, entry.len(), entry.len() as f32, false))
+                    return Some((i, entry.len(), entry.len() as f32, false))
                 }
             }
         }
@@ -83,7 +83,7 @@ impl<'a> CodeIterator<'a> {
         None
     }
 
-    fn try_lemma_dict(&self, dict: &[&str], cost: f32, space: bool) -> Option<(u32, usize, f32, bool)> {
+    fn try_lemma_dict(&self, dict: &[&str], cost: f32, space: bool) -> Option<(usize, usize, f32, bool)> {
         let mut largest = None;
         for (i, entry) in dict.iter().enumerate() {
             if self.compare(entry.as_bytes()) {
@@ -113,7 +113,7 @@ impl<'a> CodeIterator<'a> {
             }
         }
 
-        largest.map(|(index, length, space)| (index as u32, length, length as f32 / cost, space))
+        largest.map(|(index, length, space)| (index, length, length as f32 / cost, space))
     }
 
     fn encode_next(&self) -> (usize, CodeType) {
@@ -138,8 +138,8 @@ impl<'a> CodeIterator<'a> {
 
         let list = [self.try_lemma_dict(TWO_BYTE_COMMON.as_slice(), 2f32, true), self.try_lemma_dict(THREE_BYTE_UNCOMMON.as_slice(), 3f32, true), self.try_wonder()];
 
-        let mut largest_ratio_triple = (0f32, 0usize, None, 0u32, false);
-        let mut largest_length_triple = (0f32, 0usize, None, 0u32, false);
+        let mut largest_ratio_triple = (0f32, 0usize, None, 0usize, false);
+        let mut largest_length_triple = (0f32, 0usize, None, 0usize, false);
         let mut same = true;
 
         for (i, item) in list.iter().enumerate() {
@@ -182,12 +182,12 @@ impl<'a> CodeIterator<'a> {
             //It might be a non-printable
 
             if let Ok(pos) = CONTROLS.binary_search(&self.main[0]) {
-                return (1, CodeType::Unprintable(pos as u32))
+                return (1, CodeType::Unprintable(pos))
             }
 
 
             //If none of the above encoding schemes work, we just encode a single ascii character
-            (1, CodeType::OneByteWonder(self.main[0] as u32))
+            (1, CodeType::OneByteWonder(self.main[0] as usize))
         }
 
     }

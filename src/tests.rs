@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod tests {
-
+    use crate::ir::CodeType;
     use crate::iterator::CodeIterator;
+    use crate::tables::{THREE_BYTE_UNCOMMON, TWO_BYTE_COMMON};
 
     fn smaz_compare(string: &str) {
         use smaz::compress;
@@ -11,12 +12,32 @@ mod tests {
 
         println!("String: '{}' ({:?})", string, string);
         println!("    Compression:           {:?}", CodeIterator::new(string).collect::<Vec<_>>());
-        println!("    Compression size:      {} ({}% of original size)", code_len, code_len as f32 / string.as_bytes().len() as f32 * 100f32);
-        println!("    Smaz Compression size: {} ({}% of original size)", smaz_len, smaz_len as f32 / string.as_bytes().len() as f32 * 100f32);
+        println!("    Compression size:      {} ({}% compression ratio)", code_len, 100f32 - code_len as f32 / string.as_bytes().len() as f32 * 100f32);
+        println!("    Smaz Compression size: {} ({}% compression ratio)", smaz_len, 100f32 - smaz_len as f32 / string.as_bytes().len() as f32 * 100f32);
 
         assert!(code_len <= smaz_len);
 
     }
+
+    #[test]
+    fn number_test() {
+        smaz_compare("6709376338672");
+    }
+
+    /*#[test]
+    fn http1() {
+        smaz_compare("http://google.com");
+    }
+
+    #[test]
+    fn http2() {
+        smaz_compare("http://programming.reddit.com");
+    }
+
+    #[test]
+    fn http3() {
+        smaz_compare("http://github.com/antirez/smaz/tree/master");
+    }*/
 
     #[test]
     fn ascii_control_test() {
@@ -93,6 +114,125 @@ small strings will not work.");
     }
 
     #[test]
+    fn smaz10() {
+        smaz_compare("small string shrinker");
+    }
+
+    #[test]
+    fn smaz11() {
+        smaz_compare("their");
+    }
+
+    fn serialize(string: &str, bytes: & [u8]) {
+
+        let mut v: Vec<u8> = Vec::new();
+
+        for code in CodeIterator::new(string) {
+            print!("{:?}, ", code);
+            code.serialize_into(& mut v);
+        }
+
+        assert_eq!(v.as_slice(), bytes)
+    }
+
+    #[test]
+    fn serialize_obw_test1() { serialize("r", ['r' as u8].as_slice()) }
+
+    #[test]
+    fn serialize_obw_test2() { serialize("the", [1].as_slice()) }
+
+
+
+
+    #[test]
+    fn serialize_tbc_test1() { serialize("that", [241, 0].as_slice()) }
+
+    #[test]
+    fn serialize_tbc_test2() { serialize(TWO_BYTE_COMMON[255], [241, 255].as_slice()) }
+
+    #[test]
+    fn serialize_tbc_test3() { serialize(TWO_BYTE_COMMON[256], [242, 0].as_slice()) }
+
+    #[test]
+    fn serialize_control_test1() { serialize("\x01", [255, 98].as_slice()) }
+
+    #[test]
+    fn serialize_tbu_test1() { serialize("trading", [255, 127, 3].as_slice()) }
+
+    #[test]
+    fn serialize_tbu_test2() { serialize(THREE_BYTE_UNCOMMON[256], [255, 128, 0].as_slice()) }
+
+    #[test]
+    fn serialize_num_test1() { serialize("1023", [255, 90, 255].as_slice()) }
+
+    #[test]
+    fn serialize_num_test2() { serialize("6577567", [255, 92, 103, 23, 25].as_slice()) }
+
+    #[test]
+    fn serialize_uni_test2() { serialize("❤", [240, 226, 157, 164].as_slice()) }
+
+    fn deserialize(mut bytes: & [u8], string: &str) {
+        let code = CodeType::deserialize_from(& mut bytes);
+        assert_eq!(code.to_string().as_str(), string);
+    }
+
+    #[test]
+    fn deserialize_obw1() { deserialize([1].as_slice(), "the") }
+
+    #[test]
+    fn deserialize_tbc1() { deserialize([241, 0].as_slice(), "that") }
+
+
+    fn single_code_ser_deser(string: &str) {
+        let code = CodeIterator::new(string).nth(0).unwrap();
+
+        let mut v: Vec<u8> = Vec::new();
+
+        code.serialize_into(& mut v);
+
+        let code2 = CodeType::deserialize_from(&v[..]);
+
+        assert_eq!(code, code2)
+
+    }
+
+    #[test]
+    fn test_single_the() { single_code_ser_deser("the") }
+
+    #[test]
+    fn test_single_sexes() { single_code_ser_deser("sexes") }
+
+    #[test]
+    fn test_single_unicode() { single_code_ser_deser("❤") }
+
+    #[test]
+    fn test_single_unprintable() { single_code_ser_deser("\x01") }
+
+    #[test]
+    fn test_single_tbu() { single_code_ser_deser("trading") }
+
+    #[test]
+    fn test_single_num() { single_code_ser_deser("1000") }
+
+    #[test]
+    fn test_single_num1() { single_code_ser_deser("100000000") }
+
+    #[test]
+    fn test_single_num2() { single_code_ser_deser("1000000000000000000") }
+
+    #[test]
+    fn test_single_tbc1() { single_code_ser_deser(TWO_BYTE_COMMON[0]) }
+
+    #[test]
+    fn test_single_tbc2() { single_code_ser_deser(TWO_BYTE_COMMON[TWO_BYTE_COMMON.len()-1]) }
+
+    #[test]
+    fn test_single_tbu1() { single_code_ser_deser(THREE_BYTE_UNCOMMON[0]) }
+
+    #[test]
+    fn test_single_tbu2() { single_code_ser_deser(THREE_BYTE_UNCOMMON[THREE_BYTE_UNCOMMON.len()-1]) }
+
+    /*#[test]
     fn test_list() {
         use smaz::compress;
 
@@ -121,7 +261,7 @@ small strings will not work.");
             }
         }
 
-    }
+    }*/
 
     /*
     #[test]
