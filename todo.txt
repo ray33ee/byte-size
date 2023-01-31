@@ -8,7 +8,9 @@
 - Implement Serde for CodeType to serialise it into bytes via bincode
 - Add repeatable sequences allowing up to 32 repetitions
     - Repetitions include ascii characters, and also other strings commonly repeated ('hehe',. 'ha ha', 'soooooo', etc.).
-    - Create a special ascii table that includes commonly repeaded sequences in the gaps
+    - Create a special ascii table that includes commonly repeated sequences in the gaps
 - Re order lists such that bigger words like 'download' match before their substrings like 'down'
 - Create a struct that allows users to compress and decompress using customizable options. Add convenience functions that doo this with default options
 - Match repetitions before numbers and compare which is better
+- Error handling
+    - Search for `.unwrap()`s

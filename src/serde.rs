@@ -5,6 +5,7 @@ use crate::tables::{CONTROLS, ONE_BYTE_WONDER, THREE_BYTE_UNCOMMON, TWO_BYTE_COM
 impl CodeType {
 
     const ONE_BYTE_WONDER_COUNT: usize = ONE_BYTE_WONDER.len();
+    const CUSTOM_COUNT: usize = 32;
     const REPETITION_COUNT: usize = 32;
     const NUMBER_COUNT: usize = 32;
     const UNICODE_COUNT: usize = 1; //Unicode only takes one value out of the one bytes
@@ -33,15 +34,21 @@ impl CodeType {
 
             if two_code < Self::TWO_BYTE_COUNT*2 {
                 CodeType::TwoByteCommon(two_code / Self::TWO_BYTE_COUNT != 0, two_code % Self::TWO_BYTE_COUNT)
-            } else if two_code < Self::TWO_BYTE_COUNT*2 + Self::REPETITION_COUNT {
+            } else if two_code < Self::TWO_BYTE_COUNT*2 + Self::CUSTOM_COUNT {
 
                 let comb = two_code - Self::TWO_BYTE_COUNT*2;
+
+
+                CodeType::Custom(comb as usize)
+            } else if two_code < Self::TWO_BYTE_COUNT*2 + Self::CUSTOM_COUNT + Self::REPETITION_COUNT {
+
+                let comb = two_code - Self::TWO_BYTE_COUNT*2 - Self::CUSTOM_COUNT;
 
                 let third: u8 = bincode::deserialize_from(& mut reader).unwrap();
 
                 CodeType::Repetitions(comb as u32, third as usize)
-            } else if two_code < Self::TWO_BYTE_COUNT*2 + Self::REPETITION_COUNT + Self::NUMBER_COUNT {
-                let comb = two_code - Self::TWO_BYTE_COUNT*2 - Self::REPETITION_COUNT;
+            } else if two_code < Self::TWO_BYTE_COUNT*2 + Self::CUSTOM_COUNT + Self::REPETITION_COUNT + Self::NUMBER_COUNT {
+                let comb = two_code - Self::TWO_BYTE_COUNT*2 - Self::CUSTOM_COUNT - Self::REPETITION_COUNT;
 
                 let four = comb / 8;
                 let len = comb % 8 + 1;
@@ -55,12 +62,12 @@ impl CodeType {
                 }
 
                 CodeType::Number(num)
-            } else if two_code < Self::TWO_BYTE_COUNT*2 + Self::REPETITION_COUNT + Self::NUMBER_COUNT + Self::NON_PRINTABLE_COUNT {
-                let comb = two_code - Self::TWO_BYTE_COUNT*2 - Self::REPETITION_COUNT - Self::NUMBER_COUNT;
+            } else if two_code < Self::TWO_BYTE_COUNT*2 + Self::CUSTOM_COUNT + Self::REPETITION_COUNT + Self::NUMBER_COUNT + Self::NON_PRINTABLE_COUNT {
+                let comb = two_code - Self::TWO_BYTE_COUNT*2 - Self::CUSTOM_COUNT - Self::REPETITION_COUNT - Self::NUMBER_COUNT;
 
                 CodeType::Unprintable(comb)
             } else {
-                let comb = two_code - Self::TWO_BYTE_COUNT*2 - Self::REPETITION_COUNT - Self::NUMBER_COUNT - Self::NON_PRINTABLE_COUNT;
+                let comb = two_code - Self::TWO_BYTE_COUNT*2 - Self::CUSTOM_COUNT - Self::REPETITION_COUNT - Self::NUMBER_COUNT - Self::NON_PRINTABLE_COUNT;
 
                 let third: u8 = bincode::deserialize_from(& mut reader).unwrap();
 
@@ -89,8 +96,11 @@ impl CodeType {
                         let n = if *space {Self::TWO_BYTE_COUNT + *index as usize} else {*index as usize};
                         (n, None)
                     }
+                    CodeType::Custom(index) => {
+                        (*index as usize + Self::TWO_BYTE_COUNT*2, None)
+                    }
                     CodeType::Repetitions(count, repeat) => {
-                        (*count as usize + Self::TWO_BYTE_COUNT*2, Some(vec![*repeat as u8]))
+                        (*count as usize + Self::TWO_BYTE_COUNT*2 + Self::CUSTOM_COUNT, Some(vec![*repeat as u8]))
                     }
                     CodeType::Number(mut num) => {
 
@@ -105,15 +115,15 @@ impl CodeType {
                             num = num >> 8;
                         }
 
-                        (four as usize * 8 + (bytes.len()-1) + Self::TWO_BYTE_COUNT*2 + Self::REPETITION_COUNT, Some(bytes))
+                        (four as usize * 8 + (bytes.len()-1) + Self::TWO_BYTE_COUNT*2 + Self::CUSTOM_COUNT + Self::REPETITION_COUNT, Some(bytes))
                     }
                     CodeType::Unprintable(ind) => {
-                        (*ind as usize + Self::TWO_BYTE_COUNT*2 + Self::REPETITION_COUNT + Self::NUMBER_COUNT, None)
+                        (*ind as usize + Self::TWO_BYTE_COUNT*2 + Self::CUSTOM_COUNT + Self::REPETITION_COUNT + Self::NUMBER_COUNT, None)
                     }
                     CodeType::ThreeByteUncommon(space, ind) => {
                         let n = if *space {Self::THREE_BYTE_COUNT + *ind as usize} else {*ind as usize};
 
-                        (Self::TWO_BYTE_COUNT*2 + Self::REPETITION_COUNT + Self::NUMBER_COUNT + Self::NON_PRINTABLE_COUNT + n/256, Some(vec![(n % 256) as u8]))
+                        (Self::TWO_BYTE_COUNT*2 + Self::CUSTOM_COUNT + Self::REPETITION_COUNT + Self::NUMBER_COUNT + Self::NON_PRINTABLE_COUNT + n/256, Some(vec![(n % 256) as u8]))
                     }
                     _ => {unreachable!()}
                 };

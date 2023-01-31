@@ -11,7 +11,8 @@ The Snaz code is as follows:
   - This leaves 16 values remaining for multi-byte codes.
     - One of these values is used to indicate a Unicode scalar value will follow
     - This leaves 15*256=3840 combinations of two byte sequences, which are divided as such:
-      - 3618 are used to encode the 2 byte common words, 1809 with a space prefix and 1809 without
+      - 3586 are used to encode the 2 byte common words, 1793 with a space prefix and 1793 without
+      - 32 are used to encode custom words
       - 32 are used to encode sequence repetitions of anywhere between 4 and 35 repeating units
       - 32 are used to encode numbers. 32 values means 5 bits in total, 3 for the number of bytes used, and 2 for the number itself
       - 29 are used to encode the non-printable control characters

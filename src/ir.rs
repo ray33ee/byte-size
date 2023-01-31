@@ -1,5 +1,6 @@
 use std::fmt::{Formatter};
-use crate::tables::{ONE_BYTE_WONDER, TWO_BYTE_COMMON, THREE_BYTE_UNCOMMON, CONTROLS};
+use crate::builder::Builder;
+use crate::tables::{ONE_BYTE_WONDER, TWO_BYTE_COMMON, THREE_BYTE_UNCOMMON, CONTROLS, REPETITIONS};
 
 #[derive(PartialEq)]
 pub (crate) enum CodeType {
@@ -33,6 +34,8 @@ pub (crate) enum CodeType {
     Unprintable(usize),
 
     Repetitions(u32, usize),
+
+    Custom(usize),
 }
 
 impl CodeType {
@@ -56,6 +59,7 @@ impl CodeType {
             }
             CodeType::Unprintable(_) => {2}
             CodeType::Repetitions(_, _) => {3}
+            CodeType::Custom(_) => {2}
         };
 
         let mut v = Vec::new();
@@ -94,33 +98,44 @@ impl std::fmt::Debug for CodeType {
             CodeType::Repetitions(_, _) => {
                 todo!()
             }
+            CodeType::Custom(ind) => {
+                write!(f, "Custom({})", *ind)
+            }
         }
     }
 }
 
-impl std::fmt::Display for CodeType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+impl CodeType {
+    pub fn add_to_string(&self, string: & mut String, builder: & Builder) -> std::fmt::Result {
+        use std::fmt::Write;
+
         match self {
             CodeType::OneByteWonder(index) => {
-                write!(f, "{}", ONE_BYTE_WONDER[*index])
+                write!(string, "{}", ONE_BYTE_WONDER[*index])
             }
             CodeType::TwoByteCommon(space, index) => {
-                write!(f, "{}{}", if *space { " " } else { "" }, TWO_BYTE_COMMON[*index as usize])
+                write!(string, "{}{}", if *space { " " } else { "" }, TWO_BYTE_COMMON[*index as usize])
             }
             CodeType::ThreeByteUncommon(space, index) => {
-                write!(f, "{}{}", if *space { " " } else { "" }, THREE_BYTE_UNCOMMON[*index as usize])
+                write!(string, "{}{}", if *space { " " } else { "" }, THREE_BYTE_UNCOMMON[*index as usize])
             }
             CodeType::UnicodeChar(ch) => {
-                write!(f, "{}", *ch)
+                write!(string, "{}", *ch)
             }
             CodeType::Number(num) => {
-                write!(f, "{}", *num)
+                write!(string, "{}", *num)
             }
             CodeType::Unprintable(index) => {
-                write!(f, "{}", CONTROLS[*index as usize])
+                write!(string, "{}", CONTROLS[*index as usize] as char)
             }
-            CodeType::Repetitions(_, _) => {
-                todo!()
+            CodeType::Repetitions(count, index) => {
+                for _ in 0..*count {
+                    write!(string, "{}", REPETITIONS[*index])?;
+                }
+                std::fmt::Result::Ok(())
+            }
+            CodeType::Custom(index) => {
+                write!(string, "{}", builder.custom[*index])
             }
         }
     }

@@ -1,16 +1,19 @@
 use std::str::from_utf8_unchecked;
+use crate::builder::Builder;
 use crate::tables::{ONE_BYTE_WONDER, TWO_BYTE_COMMON, THREE_BYTE_UNCOMMON, CONTROLS};
 use crate::ir::{CodeType};
 
 pub (crate) struct CodeIterator<'a> {
     main: & 'a [u8],
+    builder: & 'a Builder,
 }
 
 impl<'a> CodeIterator<'a> {
 
-    pub (crate) fn new(s: & 'a str) -> Self {
+    pub (crate) fn new(s: & 'a str, builder: & 'a Builder) -> Self {
         Self {
             main: s.as_bytes(),
+            builder,
         }
     }
 
@@ -136,7 +139,12 @@ impl<'a> CodeIterator<'a> {
             }
         }
 
-        let list = [self.try_lemma_dict(TWO_BYTE_COMMON.as_slice(), 2f32, true), self.try_lemma_dict(THREE_BYTE_UNCOMMON.as_slice(), 3f32, true), self.try_wonder()];
+        let list = [
+
+            self.try_lemma_dict(self.builder.custom.as_slice(), 2f32, false),
+            self.try_lemma_dict(TWO_BYTE_COMMON.as_slice(), 2f32, true),
+            self.try_lemma_dict(THREE_BYTE_UNCOMMON.as_slice(), 3f32, true),
+            self.try_wonder()];
 
         let mut largest_ratio_triple = (0f32, 0usize, None, 0usize, false);
         let mut largest_length_triple = (0f32, 0usize, None, 0usize, false);
@@ -172,9 +180,10 @@ impl<'a> CodeIterator<'a> {
             };
 
             match chosen_triplet.2.unwrap() {
-                2 => {(chosen_triplet.1, CodeType::OneByteWonder(chosen_triplet.3))},
-                0 => {(chosen_triplet.1, CodeType::TwoByteCommon(chosen_triplet.4, chosen_triplet.3))},
-                1 => {(chosen_triplet.1, CodeType::ThreeByteUncommon(chosen_triplet.4, chosen_triplet.3))},
+                0 => {(chosen_triplet.1, CodeType::Custom(chosen_triplet.3))},
+                3 => {(chosen_triplet.1, CodeType::OneByteWonder(chosen_triplet.3))},
+                1 => {(chosen_triplet.1, CodeType::TwoByteCommon(chosen_triplet.4, chosen_triplet.3))},
+                2 => {(chosen_triplet.1, CodeType::ThreeByteUncommon(chosen_triplet.4, chosen_triplet.3))},
                 _ => {panic!("Invalid byte index ")}
             }
 

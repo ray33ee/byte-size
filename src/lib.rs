@@ -3,7 +3,7 @@ mod iterator;
 mod tables;
 mod tests;
 mod serde;
+pub mod builder;
 
-extern crate core;
-
-
+pub use crate::builder::compress;
+pub use crate::builder::decompress;

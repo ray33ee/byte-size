@@ -1,112 +1,125 @@
 #[cfg(test)]
 mod tests {
+    use crate::builder::Builder;
     use crate::ir::CodeType;
     use crate::iterator::CodeIterator;
     use crate::tables::{THREE_BYTE_UNCOMMON, TWO_BYTE_COMMON};
 
-    fn smaz_compare(string: &str) {
+    fn full_ser_deser(string: &str) {
         use smaz::compress;
 
-        let code_len = CodeIterator::new(string).fold(0usize, |sum, x| sum + x.len());
+        let bytes = crate::builder::compress(string);
+
+        let x = crate::builder::decompress(bytes.as_slice());
+
         let smaz_len = compress(string.as_bytes()).len();
+        let code_len = bytes.len();
 
         println!("String: '{}' ({:?})", string, string);
-        println!("    Compression:           {:?}", CodeIterator::new(string).collect::<Vec<_>>());
+        println!("    Compression:           {:?}", bytes);
+        println!("    Code Points:           {:?}", CodeIterator::new(string, &Builder::default()).collect::<Vec<_>>());
         println!("    Compression size:      {} ({}% compression ratio)", code_len, 100f32 - code_len as f32 / string.as_bytes().len() as f32 * 100f32);
         println!("    Smaz Compression size: {} ({}% compression ratio)", smaz_len, 100f32 - smaz_len as f32 / string.as_bytes().len() as f32 * 100f32);
 
-        assert!(code_len <= smaz_len);
+        assert_eq!(string, x.as_str());
+
+        assert!(code_len <= smaz_len)
 
     }
 
     #[test]
     fn number_test() {
-        smaz_compare("6709376338672");
+        full_ser_deser("6709376338672");
     }
 
-    /*#[test]
+    #[test]
     fn http1() {
-        smaz_compare("http://google.com");
+        full_ser_deser("http://google.com");
     }
 
     #[test]
     fn http2() {
-        smaz_compare("http://programming.reddit.com");
+        full_ser_deser("http://programming.reddit.com");
     }
 
     #[test]
     fn http3() {
-        smaz_compare("http://github.com/antirez/smaz/tree/master");
-    }*/
+        full_ser_deser("http://github.com/antirez/smaz/tree/master");
+    }
 
     #[test]
     fn ascii_control_test() {
-        smaz_compare("\x01");
+        full_ser_deser("\x01");
+    }
+
+    #[test]
+    fn message_test() {
+        full_ser_deser("yeh thats fine mate 🙂");
     }
 
     #[test]
     fn unicode_test() {
-        smaz_compare("✔️ ❤️ ☆");
+        full_ser_deser("✔️ ❤️ ☆");
     }
 
     #[test]
     fn fox() {
-        smaz_compare("The quick brown fox jumped over the lazy dog");
+        full_ser_deser("The quick brown fox jumped over the lazy dog");
     }
 
     #[test]
     fn therefore() {
-        smaz_compare("therefore");
+        full_ser_deser("therefore");
     }
 
     #[test]
     fn download() {
-        smaz_compare("download");
+        full_ser_deser("download");
     }
 
     #[test]
     fn smaz1() {
-        smaz_compare("This is a small string");
+        full_ser_deser("This is a small string");
     }
 
     #[test]
     fn smaz2() {
-        smaz_compare("foobar");
+        full_ser_deser("foobar");
     }
 
     #[test]
     fn smaz3() {
-        smaz_compare("the end");
+        full_ser_deser("the end");
     }
 
     #[test]
     fn smaz4() {
-        smaz_compare("not-a-g00d-Exampl333");
+        full_ser_deser("not-a-g00d-Exampl333");
     }
 
     #[test]
     fn smaz5() {
-        smaz_compare("Smaz is a simple compression library");
+        full_ser_deser("Smaz is a simple compression library");
     }
 
     #[test]
     fn smaz6() {
-        smaz_compare("Nothing is more difficult, and therefore more precious, than to be able to decide");
+        full_ser_deser("Nothing is more difficult, and therefore more precious, than to be able to decide");
     }
 
     #[test]
     fn smaz7() {
-        smaz_compare("this is an example of what works very well with smaz");
+        full_ser_deser("this is an example of what works very well with smaz");
     }
 
     #[test]
     fn smaz8() {
-        smaz_compare("1000 numbers 2000 will 10 20 30 compress very little");
+        full_ser_deser("1000 numbers 2000 will 10 20 30 compress very little");
     }
 
     #[test]
     fn smaz9() {
-        smaz_compare("Smaz is a simple compression library suitable for compressing very short
+        full_ser_deser("Smaz is a simple compression library suitable for compressing very short
 strings. General purpose compression libraries will build the state needed
 for compressing data dynamically, in order to be able to compress every kind
 of data. This is a very good idea, but not for a specific problem: compressing
@@ -115,19 +128,19 @@ small strings will not work.");
 
     #[test]
     fn smaz10() {
-        smaz_compare("small string shrinker");
+        full_ser_deser("small string shrinker");
     }
 
     #[test]
     fn smaz11() {
-        smaz_compare("their");
+        full_ser_deser("their");
     }
 
     fn serialize(string: &str, bytes: & [u8]) {
 
         let mut v: Vec<u8> = Vec::new();
 
-        for code in CodeIterator::new(string) {
+        for code in CodeIterator::new(string, &Builder::default()) {
             print!("{:?}, ", code);
             code.serialize_into(& mut v);
         }
@@ -157,7 +170,7 @@ small strings will not work.");
     fn serialize_control_test1() { serialize("\x01", [255, 98].as_slice()) }
 
     #[test]
-    fn serialize_tbu_test1() { serialize("trading", [255, 127, 3].as_slice()) }
+    fn serialize_tbu_test1() { serialize("trading", [255, 127, 19].as_slice()) }
 
     #[test]
     fn serialize_tbu_test2() { serialize(THREE_BYTE_UNCOMMON[256], [255, 128, 0].as_slice()) }
@@ -171,24 +184,14 @@ small strings will not work.");
     #[test]
     fn serialize_uni_test2() { serialize("❤", [240, 226, 157, 164].as_slice()) }
 
-    fn deserialize(mut bytes: & [u8], string: &str) {
-        let code = CodeType::deserialize_from(& mut bytes);
-        assert_eq!(code.to_string().as_str(), string);
-    }
-
-    #[test]
-    fn deserialize_obw1() { deserialize([1].as_slice(), "the") }
-
-    #[test]
-    fn deserialize_tbc1() { deserialize([241, 0].as_slice(), "that") }
-
-
     fn single_code_ser_deser(string: &str) {
-        let code = CodeIterator::new(string).nth(0).unwrap();
+        let code = CodeIterator::new(string, &Builder::default()).nth(0).unwrap();
 
         let mut v: Vec<u8> = Vec::new();
 
         code.serialize_into(& mut v);
+
+        println!("Bytes: {:?}", v);
 
         let code2 = CodeType::deserialize_from(&v[..]);
 
@@ -232,7 +235,19 @@ small strings will not work.");
     #[test]
     fn test_single_tbu2() { single_code_ser_deser(THREE_BYTE_UNCOMMON[THREE_BYTE_UNCOMMON.len()-1]) }
 
-    /*#[test]
+    #[test]
+    fn test_single_trading() { single_code_ser_deser("trading") }
+
+    #[test]
+    fn test() {
+        let bytes: [u8; 2] = [255, 98];
+        let code = CodeType::deserialize_from(bytes.as_slice());
+        println!("{:?} {}", code, "\x01");
+        assert_eq!(code, CodeType::Unprintable(0))
+    }
+
+    #[test]
+    #[ignore]
     fn test_list() {
         use smaz::compress;
 
@@ -246,7 +261,7 @@ small strings will not work.");
         for line in str.lines() {
             let line = line.split_whitespace().nth(0).unwrap();
 
-            let v = CodeIterator::new(line).collect::<Vec<_>>();
+            let v = CodeIterator::new(line, &Builder::default()).collect::<Vec<_>>();
             let code_len = v.iter().fold(0usize, |sum, x| sum + x.len());
             let smaz_len = compress(line.as_bytes()).len();
 
@@ -261,10 +276,11 @@ small strings will not work.");
             }
         }
 
-    }*/
+    }
 
-    /*
+
     #[test]
+    #[ignore]
     fn generate_list() {
         let str = std::fs::read_to_string(".\\.3m.txt").unwrap();
 
@@ -274,7 +290,7 @@ small strings will not work.");
 
             let line = line.split_whitespace().nth(0).unwrap();
 
-            let code_len = CodeIterator::new(line).fold(0usize, |sum, x| sum + x.len());
+            let code_len = CodeIterator::new(line, &Builder::empty()).fold(0usize, |sum, x| sum + x.len());
 
             if code_len >= 3 {
                 print!("{:?}, ", line);
@@ -285,6 +301,6 @@ small strings will not work.");
             }
         }
     }
-    */
+
 
 }
