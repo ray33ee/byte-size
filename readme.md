@@ -1,11 +1,37 @@
-# Snaz
+# sss
 
-- the one byte wonder sequences are taken from [here](https://github.com/antirez/smaz/blob/master/smaz.c)
-  - We filtered out certain sequences that don't work well 
-- the two byte common and three byte uncommon words are chosen from [here](https://github.com/first20hours/google-10000-english/blob/master/20k.txt) 
+[![Crates.io](https://img.shields.io/crates/v/sss.svg)](https://crates.io/crates/sss)
+[![Docs.rs](https://docs.rs/sss/badge.svg)](https://docs.rs/sss)
+
+A short string compressor/decompressor that can store 20,000+ words in three bytes or less.
+
+Similar to [smaz](https://github.com/antirez/smaz), sss is able to compress small strings, something that other conventional compression algorithms struggle with.
+
+However, sss is typically better than smaz, certainly for very commonly used words (out of 10000 most common words, ony 1% had better compression with smaz)
+sss can also represent numbers, repeated sequences and non-alphanumeric characters more efficiently than smaz. It can encode unicode characters, but not very efficiently. If your text includes a few unicode characters it should still compress better, but if your strings are mostly unicode characters, other schemes such as [Unishox](https://github.com/siara-cc/Unishox2) are better.
+
+## Cost
+
+sss uses several tables with over 18000 total entries. Obviously this will incur a large runtime memory and binary file size cost, but if you have the memory available, it is worth it to compress more effectively.
+
+To match these, currently we use a poor algorithm that lops over EVERY entry in EVERY table to obtain the best map. Future versions will use a phf hash table approach.
+
+## Examples
+
+Using examples directly from smaz we have:
+
+[Insert examples]
+
+We can see how every example is compressed more with sss than smaz.
+
+## Encoding
+
+- the one byte wonder sequences are taken from [smaz](https://github.com/antirez/smaz/blob/master/smaz.c)
+  - We filtered out certain sequences that don't work well
+- the two byte common and three byte uncommon words are chosen from [here](https://norvig.com/ngrams/)
   - Words are only chosen from the list if their representation is more compact (for example the word 'the' does not appear in either 2 byte or 3 byte tables as it can be represented in 1 byte)
 
-The Snaz code is as follows:
+The Snaz encoding is as follows:
 
 - The one byte wonders consist of 240 one byte sequences. These one byte wonders are the ascii values in their normal positions, with other common sequences filling the gaps to 
   - This leaves 16 values remaining for multi-byte codes.

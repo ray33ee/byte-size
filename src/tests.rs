@@ -10,7 +10,7 @@ mod tests {
 
         let bytes = crate::builder::compress(string);
 
-        let x = crate::builder::decompress(bytes.as_slice());
+        let x = crate::builder::decompress(bytes.as_slice()).unwrap();
 
         let smaz_len = compress(string.as_bytes()).len();
         let code_len = bytes.len();
@@ -193,7 +193,7 @@ small strings will not work.");
 
         println!("Bytes: {:?}", v);
 
-        let code2 = CodeType::deserialize_from(&v[..]);
+        let code2 = CodeType::deserialize_from(&v[..]).unwrap();
 
         assert_eq!(code, code2)
 
@@ -241,9 +241,21 @@ small strings will not work.");
     #[test]
     fn test() {
         let bytes: [u8; 2] = [255, 98];
-        let code = CodeType::deserialize_from(bytes.as_slice());
+        let code = CodeType::deserialize_from(bytes.as_slice()).unwrap();
         println!("{:?} {}", code, "\x01");
         assert_eq!(code, CodeType::Unprintable(0))
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_bad_double() {
+        crate::builder::decompress([255].as_slice()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_bad_unicode() {
+        crate::builder::decompress([240, 0x80, 0x81].as_slice()).unwrap();
     }
 
     #[test]

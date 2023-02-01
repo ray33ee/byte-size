@@ -133,9 +133,10 @@ impl<'a> CodeIterator<'a> {
         //If we have a non-ascii character, encode as a unicode scalar value
         {
             let s = unsafe { from_utf8_unchecked(self.main) };
-            let first = s.chars().nth(0).unwrap();
-            if !first.is_ascii() {
-                return (first.len_utf8(), CodeType::UnicodeChar(first))
+            if let Some(first) = s.chars().nth(0) {
+                if !first.is_ascii() {
+                    return (first.len_utf8(), CodeType::UnicodeChar(first))
+                }
             }
         }
 
@@ -179,7 +180,7 @@ impl<'a> CodeIterator<'a> {
                 largest_length_triple
             };
 
-            match chosen_triplet.2.unwrap() {
+            match chosen_triplet.2.unwrap() { //This unwrap will always be ok because of the if let on largest_ratio_triple.2
                 0 => {(chosen_triplet.1, CodeType::Custom(chosen_triplet.3))},
                 3 => {(chosen_triplet.1, CodeType::OneByteWonder(chosen_triplet.3))},
                 1 => {(chosen_triplet.1, CodeType::TwoByteCommon(chosen_triplet.4, chosen_triplet.3))},

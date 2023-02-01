@@ -1,6 +1,6 @@
-use std::fmt::{Formatter};
 use crate::builder::Builder;
 use crate::tables::{ONE_BYTE_WONDER, TWO_BYTE_COMMON, THREE_BYTE_UNCOMMON, CONTROLS, REPETITIONS};
+use crate::error::Result;
 
 #[derive(PartialEq)]
 pub (crate) enum CodeType {
@@ -106,37 +106,38 @@ impl std::fmt::Debug for CodeType {
 }
 
 impl CodeType {
-    pub fn add_to_string(&self, string: & mut String, builder: & Builder) -> std::fmt::Result {
+    pub fn add_to_string(&self, string: & mut String, builder: & Builder) -> Result<()> {
         use std::fmt::Write;
 
         match self {
             CodeType::OneByteWonder(index) => {
-                write!(string, "{}", ONE_BYTE_WONDER[*index])
+                write!(string, "{}", ONE_BYTE_WONDER[*index])?;
             }
             CodeType::TwoByteCommon(space, index) => {
-                write!(string, "{}{}", if *space { " " } else { "" }, TWO_BYTE_COMMON[*index as usize])
+                write!(string, "{}{}", if *space { " " } else { "" }, TWO_BYTE_COMMON[*index as usize])?;
             }
             CodeType::ThreeByteUncommon(space, index) => {
-                write!(string, "{}{}", if *space { " " } else { "" }, THREE_BYTE_UNCOMMON[*index as usize])
+                write!(string, "{}{}", if *space { " " } else { "" }, THREE_BYTE_UNCOMMON[*index as usize])?;
             }
             CodeType::UnicodeChar(ch) => {
-                write!(string, "{}", *ch)
+                write!(string, "{}", *ch)?;
             }
             CodeType::Number(num) => {
-                write!(string, "{}", *num)
+                write!(string, "{}", *num)?;
             }
             CodeType::Unprintable(index) => {
-                write!(string, "{}", CONTROLS[*index as usize] as char)
+                write!(string, "{}", CONTROLS[*index as usize] as char)?;
             }
             CodeType::Repetitions(count, index) => {
                 for _ in 0..*count {
                     write!(string, "{}", REPETITIONS[*index])?;
                 }
-                std::fmt::Result::Ok(())
             }
             CodeType::Custom(index) => {
-                write!(string, "{}", builder.custom[*index])
+                write!(string, "{}", builder.custom[*index])?;
             }
         }
+
+        Ok(())
     }
 }

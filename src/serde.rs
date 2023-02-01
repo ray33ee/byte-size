@@ -1,6 +1,7 @@
 use std::io::Read;
 use crate::ir::CodeType;
 use crate::tables::{CONTROLS, ONE_BYTE_WONDER, THREE_BYTE_UNCOMMON, TWO_BYTE_COMMON};
+use crate::error::Result;
 
 impl CodeType {
 
@@ -13,22 +14,22 @@ impl CodeType {
     const TWO_BYTE_COUNT: usize = TWO_BYTE_COMMON.len();
     const THREE_BYTE_COUNT: usize = THREE_BYTE_UNCOMMON.len();
 
-    pub (crate) fn deserialize_from<R: Read>(mut reader: R) -> Self {
+    pub (crate) fn deserialize_from<R: Read>(mut reader: R) -> Result<Self> {
 
-        let first: u8 = bincode::deserialize_from(& mut reader).unwrap();
+        let first: u8 = bincode::deserialize_from(& mut reader)?;
 
-        if first < Self::ONE_BYTE_WONDER_COUNT as u8 {
+        Ok(if first < Self::ONE_BYTE_WONDER_COUNT as u8 {
             CodeType::OneByteWonder(first as usize)
         } else if first == Self::ONE_BYTE_WONDER_COUNT as u8 {
             //Unicode
 
-            let ch: char = bincode::deserialize_from(& mut reader).unwrap();
+            let ch: char = bincode::deserialize_from(& mut reader)?;
 
             CodeType::UnicodeChar(ch)
         } else {
             let obw_index = first as usize - Self::ONE_BYTE_WONDER_COUNT - Self::UNICODE_COUNT;
 
-            let second: u8 = bincode::deserialize_from(& mut reader).unwrap();
+            let second: u8 = bincode::deserialize_from(& mut reader)?;
 
             let two_code = obw_index as usize * 256usize + second as usize;
 
@@ -44,7 +45,7 @@ impl CodeType {
 
                 let comb = two_code - Self::TWO_BYTE_COUNT*2 - Self::CUSTOM_COUNT;
 
-                let third: u8 = bincode::deserialize_from(& mut reader).unwrap();
+                let third: u8 = bincode::deserialize_from(& mut reader)?;
 
                 CodeType::Repetitions(comb as u32, third as usize)
             } else if two_code < Self::TWO_BYTE_COUNT*2 + Self::CUSTOM_COUNT + Self::REPETITION_COUNT + Self::NUMBER_COUNT {
@@ -56,7 +57,7 @@ impl CodeType {
                 let mut num = four as u128;
 
                 for i in 0..len {
-                    let byte: u8 = bincode::deserialize_from(& mut reader).unwrap();
+                    let byte: u8 = bincode::deserialize_from(& mut reader)?;
 
                     num += (byte as u128) << (i*8+2)
                 }
@@ -69,14 +70,14 @@ impl CodeType {
             } else {
                 let comb = two_code - Self::TWO_BYTE_COUNT*2 - Self::CUSTOM_COUNT - Self::REPETITION_COUNT - Self::NUMBER_COUNT - Self::NON_PRINTABLE_COUNT;
 
-                let third: u8 = bincode::deserialize_from(& mut reader).unwrap();
+                let third: u8 = bincode::deserialize_from(& mut reader)?;
 
                 let three_code = comb * 256 + third as usize;
 
                 CodeType::ThreeByteUncommon(three_code / Self::THREE_BYTE_COUNT != 0, three_code % Self::THREE_BYTE_COUNT)
             }
 
-        }
+        })
 
 
     }
