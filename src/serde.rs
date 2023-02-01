@@ -1,4 +1,5 @@
 use std::io::Read;
+use crate::engine::Engine;
 use crate::ir::CodeType;
 use crate::tables::{CONTROLS, ONE_BYTE_WONDER, THREE_BYTE_UNCOMMON, TWO_BYTE_COMMON};
 use crate::error::Result;
@@ -14,7 +15,7 @@ impl CodeType {
     const TWO_BYTE_COUNT: usize = TWO_BYTE_COMMON.len();
     const THREE_BYTE_COUNT: usize = THREE_BYTE_UNCOMMON.len();
 
-    pub (crate) fn deserialize_from<R: Read>(mut reader: R) -> Result<Self> {
+    pub (crate) fn deserialize_from<R: Read>(mut reader: R, engine: &Engine) -> Result<Self> {
 
         let first: u8 = bincode::deserialize_from(& mut reader)?;
 
@@ -39,8 +40,13 @@ impl CodeType {
 
                 let comb = two_code - Self::TWO_BYTE_COUNT*2;
 
+                let (space, comb) = if !engine.custom_spaces {
+                    (false, comb)
+                } else {
+                    (comb >= 16, if comb >= 16 {comb - 16} else {comb})
+                };
 
-                CodeType::Custom(comb as usize)
+                CodeType::Custom(space, comb as usize)
             } else if two_code < Self::TWO_BYTE_COUNT*2 + Self::CUSTOM_COUNT + Self::REPETITION_COUNT {
 
                 let comb = two_code - Self::TWO_BYTE_COUNT*2 - Self::CUSTOM_COUNT;
@@ -82,7 +88,7 @@ impl CodeType {
 
     }
 
-    pub (crate) fn serialize_into(&self, bytes: & mut Vec<u8>) {
+    pub (crate) fn serialize_into(&self, bytes: & mut Vec<u8>, engine: & Engine) {
 
         if let CodeType::OneByteWonder(ind) = self {
             bytes.push(*ind as u8);
@@ -97,8 +103,9 @@ impl CodeType {
                         let n = if *space {Self::TWO_BYTE_COUNT + *index as usize} else {*index as usize};
                         (n, None)
                     }
-                    CodeType::Custom(index) => {
-                        (*index as usize + Self::TWO_BYTE_COUNT*2, None)
+                    CodeType::Custom(space, index) => {
+                        let n = if *space && engine.custom_spaces {* index + 16} else {*index};
+                        (n + Self::TWO_BYTE_COUNT*2, None)
                     }
                     CodeType::Repetitions(count, repeat) => {
                         (*count as usize + Self::TWO_BYTE_COUNT*2 + Self::CUSTOM_COUNT, Some(vec![*repeat as u8]))

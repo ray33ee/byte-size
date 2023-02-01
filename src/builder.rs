@@ -1,20 +1,21 @@
-use crate::ir::CodeType;
-use crate::iterator::CodeIterator;
-use crate::error::Result;
+
+use crate::engine::Engine;
 
 ///Compress/decompress with specific options
 ///
 /// Use the builder class to compress and decompress using specific options.
 ///
-/// If you're not sure about the options, either use `Builder::default()` or use the convenience functions `crate::compress` and `crate::decompress`
+/// If you're not sure about the options, either use [Builder::default] or use the convenience functions [Engine::compress] and [Engine::decompress]
 pub struct Builder {
-    pub (crate) custom: Vec<& 'static str>,
+    custom: Vec<& 'static str>,
+    custom_spaces: bool,
 }
 
 impl Default for Builder {
     fn default() -> Self {
         Self {
             custom: vec!["http://", "https://", ".com", "\n\r\n", "\r\n\r", "C:\\", ".co.uk"],
+            custom_spaces: false,
         }
     }
 }
@@ -25,13 +26,16 @@ impl Builder {
     pub fn empty() -> Self {
         Self {
             custom: Vec::new(),
+            custom_spaces: false,
         }
     }
 
+
+
     ///Move in a new list of custom words
     ///
-    /// sss supports the use of 32 custom strings which are encoded as two bytes. This list can be replaced completely with this `Builder::set_custom` function,
-    /// or it can be modified with the `Builder::push_custom` or `Builder::clear_custom` functions.
+    /// sss supports the use of 32 custom strings which are encoded as two bytes. This list can be replaced completely with this [Builder::set_custom] function,
+    /// or it can be modified with the [Builder::push_custom] or [Builder::clear_custom] functions.
     ///
     /// Note: The protocol only supports 32 custom strings, so only the first 32 strings will be used in the custom vector. Adding more than 32 is not an error, but these extra strings will not be used.
     pub fn set_custom(& mut self, list: Vec<& 'static str>) -> & mut Self {
@@ -39,13 +43,21 @@ impl Builder {
         self
     }
 
-    ///Appends a single string to the custom list. See the `Builder::set_custom` for more information on custom strings.
+    ///Determines whether the custom words will automatically support space prefixes.
+    ///
+    /// If true, the maximum number of possible custom strings in the table is halved from 32 to 16.
+    pub fn set_custom_spaces(& mut self, spaces: bool) -> & mut Self {
+        self.custom_spaces = spaces;
+        self
+    }
+
+    ///Appends a single string to the custom list. See the [Builder::set_custom] for more information on custom strings.
     pub fn push_custom(& mut self, custom: & 'static str) -> & mut Self {
         self.custom.push(custom);
         self
     }
 
-    ///Clears the custom list. See the `Builder::set_custom` for more information on custom strings.
+    ///Clears the custom list. See the [Builder::set_custom] for more information on custom strings.
     pub fn clear_custom(& mut self) -> & mut Self {
         self.custom.clear();
         self
@@ -56,38 +68,17 @@ impl Builder {
         self.custom.len()
     }
 
-    ///Compress the string using the builder options
-    pub fn compress(&self, string: & str) -> Vec<u8> {
-        let mut res = Vec::new();
+    ///Converts the builder into an [Engine]
+    pub fn engine(&self) -> Engine {
 
-        for code in CodeIterator::new(string, &self) {
-            code.serialize_into(& mut res);
+        let max_len = if self.custom_spaces { 16 } else { 32 };
+
+        let v = if self.custom.len() <= max_len { self.custom.clone() } else { (&self.custom[0..max_len]).to_vec() };
+
+        Engine {
+            custom: v,
+            custom_spaces: self.custom_spaces,
         }
-
-        res
     }
 
-    ///Tries to decompress the byte slice. If successful, the decompressed string is returned. Otherwise an `crate::error:Error` is returned.
-    pub fn decompress(&self, mut bytes: & [u8]) -> Result<String> {
-        let mut string = String::new();
-
-        while !bytes.is_empty() {
-            let code = CodeType::deserialize_from(& mut bytes)?;
-
-            code.add_to_string(& mut string, &self)?;
-        }
-
-        Ok(string)
-    }
-
-}
-
-///Convenience function to compress a string using the `Builder::default` options
-pub fn compress(string: &str) -> Vec<u8> {
-    Builder::default().compress(string)
-}
-
-///Convenience function to decompress a byte slice using the `Builder::default` options
-pub fn decompress(bytes: & [u8]) -> Result<String> {
-    Builder::default().decompress(bytes)
 }

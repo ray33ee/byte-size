@@ -8,8 +8,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8357f6b7-4019-4815-a1cd-4998aad5b1ba" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/engine.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/builder.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/builder.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/error.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/error.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ir.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/ir.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/iterator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/iterator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/serde.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/serde.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tests.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/tests.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/todo.txt" beforeDir="false" afterPath="$PROJECT_DIR$/todo.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,6 +27,13 @@
   </component>
   <component name="CodeStyleSettingsInfer">
     <option name="done" value="true" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Rust File" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -42,7 +58,7 @@
     &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager" selected="Cargo.Package">
+  <component name="RunManager" selected="Cargo.Doc">
     <configuration name="Doc" type="CargoCommandRunConfiguration" factoryName="Cargo Command" nameIsGenerated="true">
       <option name="command" value="doc" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -155,8 +171,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Cargo.Generate table" />
         <item itemvalue="Cargo.Test against .3m" />
+        <item itemvalue="Cargo.Generate table" />
       </list>
     </recent_temporary>
   </component>

@@ -1,9 +1,8 @@
 
-- Make sure in the `encode_next` function we ONLY check the first 32 (or less) custom sequences in the list. The user can add more, but only the first 32 should be checked
-- Add option to add spaces to custom words (makre sure then we only check the first 16 custom table words
+- Figure out why 'their' is represented as 3 OBW and one 1 TBU.
 
 SEARCH PERFORMANCE
-    - Find a better way to search tables for entries (bear in mind that a hash map wont work as we dont know how much we are matching from the main string)
+    - Find a better way to search tables for entries (bear in mind that a hash map won't work as we don't know how much we are matching from the main string)
      - Maybe some sort of binary tree?
         - Use rust's b tree and create our own custom type and custom comparison algorithm using the `Ord` trait
             - Make sure this algorithm matches an entry like 'download' before 'down'. (i.e. given 2 strings that have the same beginning, the largest should match)
@@ -14,9 +13,6 @@ REPETITIONS
         - Repetitions include ascii characters, and also other strings commonly repeated ('hehe',. 'ha ha', 'soooooo', etc. with capital letters too).
         - Create a special ascii table that includes commonly repeated sequences in the gaps
         - Match repetitions before numbers and compare which is better
-
-CRATES and DOCS
-    - Add to crates.io (rename project to something supported by crates.io)
 
 TABLES
     - Use build scripts to generate the tables.rs file at build time

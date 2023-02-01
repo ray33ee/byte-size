@@ -1,4 +1,4 @@
-use crate::builder::Builder;
+use crate::engine::Engine;
 use crate::tables::{ONE_BYTE_WONDER, TWO_BYTE_COMMON, THREE_BYTE_UNCOMMON, CONTROLS, REPETITIONS};
 use crate::error::Result;
 
@@ -7,7 +7,7 @@ pub (crate) enum CodeType {
     ///Represents all possible values encoded with a single byte.
     /// This includes all ascii characters as well as a bunch of common sequences.
     ///
-    /// Based off the `ONE_BYTE_WONDER` list
+    /// Based off the [ONE_BYTE_WONDER] list
     OneByteWonder(usize),
 
     ///Represents all possible values encoded with two bytes.
@@ -35,43 +35,7 @@ pub (crate) enum CodeType {
 
     Repetitions(u32, usize),
 
-    Custom(usize),
-}
-
-impl CodeType {
-    pub fn len(&self) -> usize {
-        let l = match self {
-            CodeType::OneByteWonder(_) => {1}
-            CodeType::TwoByteCommon(_, _) => {2}
-            CodeType::ThreeByteUncommon(_, _) => {3}
-            CodeType::Number(n) => {
-                let mut point = 1u128 << 10;
-                let mut count = 3;
-                while *n >= point {
-                    point = point << 8;
-                    count += 1;
-                }
-                //println!("Number {} Encoded with {} bytes.", n, count);
-                count
-            }
-            CodeType::UnicodeChar(c) => {
-                c.len_utf8()+1
-            }
-            CodeType::Unprintable(_) => {2}
-            CodeType::Repetitions(_, _) => {3}
-            CodeType::Custom(_) => {2}
-        };
-
-        let mut v = Vec::new();
-
-        self.serialize_into(& mut v);
-
-
-
-        assert_eq!(l, v.len());
-
-        l
-    }
+    Custom(bool, usize),
 }
 
 impl std::fmt::Debug for CodeType {
@@ -98,15 +62,15 @@ impl std::fmt::Debug for CodeType {
             CodeType::Repetitions(_, _) => {
                 todo!()
             }
-            CodeType::Custom(ind) => {
-                write!(f, "Custom({})", *ind)
+            CodeType::Custom(space, ind) => {
+                write!(f, "Custom({}{})", if *space { " " } else { "" }, *ind)
             }
         }
     }
 }
 
 impl CodeType {
-    pub fn add_to_string(&self, string: & mut String, builder: & Builder) -> Result<()> {
+    pub fn add_to_string(&self, string: & mut String, engine: & Engine) -> Result<()> {
         use std::fmt::Write;
 
         match self {
@@ -133,8 +97,8 @@ impl CodeType {
                     write!(string, "{}", REPETITIONS[*index])?;
                 }
             }
-            CodeType::Custom(index) => {
-                write!(string, "{}", builder.custom[*index])?;
+            CodeType::Custom(space, index) => {
+                write!(string, "{}{}", if *space { " " } else { "" }, engine.custom[*index])?;
             }
         }
 

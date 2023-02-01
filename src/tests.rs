@@ -1,23 +1,24 @@
 #[cfg(test)]
 mod tests {
     use crate::builder::Builder;
+    use crate::engine::Engine;
     use crate::ir::CodeType;
     use crate::iterator::CodeIterator;
     use crate::tables::{THREE_BYTE_UNCOMMON, TWO_BYTE_COMMON};
 
-    fn full_ser_deser(string: &str) {
+    fn full_ser_deser_builder(string: &str, engine: & Engine) {
         use smaz::compress;
 
-        let bytes = crate::builder::compress(string);
+        let bytes = engine.compress(string);
 
-        let x = crate::builder::decompress(bytes.as_slice()).unwrap();
+        let x = engine.decompress(bytes.as_slice()).unwrap();
 
         let smaz_len = compress(string.as_bytes()).len();
         let code_len = bytes.len();
 
         println!("String: '{}' ({:?})", string, string);
         println!("    Compression:           {:?}", bytes);
-        println!("    Code Points:           {:?}", CodeIterator::new(string, &Builder::default()).collect::<Vec<_>>());
+        println!("    Code Points:           {:?}", CodeIterator::new(string, &engine).collect::<Vec<_>>());
         println!("    Compression size:      {} ({}% compression ratio)", code_len, 100f32 - code_len as f32 / string.as_bytes().len() as f32 * 100f32);
         println!("    Smaz Compression size: {} ({}% compression ratio)", smaz_len, 100f32 - smaz_len as f32 / string.as_bytes().len() as f32 * 100f32);
 
@@ -25,6 +26,10 @@ mod tests {
 
         assert!(code_len <= smaz_len)
 
+    }
+
+    fn full_ser_deser(string: & str) {
+        full_ser_deser_builder(string, &Builder::default().engine())
     }
 
     #[test]
@@ -139,10 +144,11 @@ small strings will not work.");
     fn serialize(string: &str, bytes: & [u8]) {
 
         let mut v: Vec<u8> = Vec::new();
+        let engine = Builder::default().engine();
 
-        for code in CodeIterator::new(string, &Builder::default()) {
+        for code in CodeIterator::new(string, &engine) {
             print!("{:?}, ", code);
-            code.serialize_into(& mut v);
+            code.serialize_into(& mut v, &engine);
         }
 
         assert_eq!(v.as_slice(), bytes)
@@ -185,15 +191,15 @@ small strings will not work.");
     fn serialize_uni_test2() { serialize("❤", [240, 226, 157, 164].as_slice()) }
 
     fn single_code_ser_deser(string: &str) {
-        let code = CodeIterator::new(string, &Builder::default()).nth(0).unwrap();
+        let code = CodeIterator::new(string, &Builder::default().engine()).nth(0).unwrap();
 
         let mut v: Vec<u8> = Vec::new();
 
-        code.serialize_into(& mut v);
+        code.serialize_into(& mut v, &Builder::default().engine());
 
         println!("Bytes: {:?}", v);
 
-        let code2 = CodeType::deserialize_from(&v[..]).unwrap();
+        let code2 = CodeType::deserialize_from(&v[..], &Builder::default().engine()).unwrap();
 
         assert_eq!(code, code2)
 
@@ -241,7 +247,7 @@ small strings will not work.");
     #[test]
     fn test() {
         let bytes: [u8; 2] = [255, 98];
-        let code = CodeType::deserialize_from(bytes.as_slice()).unwrap();
+        let code = CodeType::deserialize_from(bytes.as_slice(), &Builder::default().engine()).unwrap();
         println!("{:?} {}", code, "\x01");
         assert_eq!(code, CodeType::Unprintable(0))
     }
@@ -249,13 +255,28 @@ small strings will not work.");
     #[test]
     #[should_panic]
     fn test_bad_double() {
-        crate::builder::decompress([255].as_slice()).unwrap();
+        crate::engine::decompress([255].as_slice()).unwrap();
     }
 
     #[test]
     #[should_panic]
     fn test_bad_unicode() {
-        crate::builder::decompress([240, 0x80, 0x81].as_slice()).unwrap();
+        crate::engine::decompress([240, 0x80, 0x81].as_slice()).unwrap();
+    }
+
+    #[test]
+    fn test_custom_space() {
+        full_ser_deser_builder(" customstringspacetest", &Builder::default().set_custom_spaces(true).push_custom("customstringspacetest").engine())
+    }
+
+    #[test]
+    fn test_custom_space2() {
+        full_ser_deser_builder(" customstringspacetest", &Builder::default().set_custom_spaces(false).push_custom("customstringspacetest").engine())
+    }
+
+    #[test]
+    fn test_custom_space3() {
+        full_ser_deser_builder("customstringspacetest", &Builder::default().set_custom_spaces(false).push_custom("customstringspacetest").engine())
     }
 
     #[test]
@@ -273,8 +294,8 @@ small strings will not work.");
         for line in str.lines() {
             let line = line.split_whitespace().nth(0).unwrap();
 
-            let v = CodeIterator::new(line, &Builder::default()).collect::<Vec<_>>();
-            let code_len = v.iter().fold(0usize, |sum, x| sum + x.len());
+            let code_len = crate::engine::compress(line).len();
+
             let smaz_len = compress(line.as_bytes()).len();
 
             if code_len > smaz_len {
@@ -290,7 +311,6 @@ small strings will not work.");
 
     }
 
-
     #[test]
     #[ignore]
     fn generate_list() {
@@ -302,7 +322,7 @@ small strings will not work.");
 
             let line = line.split_whitespace().nth(0).unwrap();
 
-            let code_len = CodeIterator::new(line, &Builder::empty()).fold(0usize, |sum, x| sum + x.len());
+            let code_len = crate::engine::compress(line).len();
 
             if code_len >= 3 {
                 print!("{:?}, ", line);
