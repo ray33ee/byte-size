@@ -3,10 +3,10 @@
 
 SEARCH PERFORMANCE
     - Find a better way to search tables for entries (bear in mind that a hash map won't work as we don't know how much we are matching from the main string)
-     - Maybe some sort of binary tree?
+     1. Maybe some sort of binary tree?
         - Use rust's b tree and create our own custom type and custom comparison algorithm using the `Ord` trait
             - Make sure this algorithm matches an entry like 'download' before 'down'. (i.e. given 2 strings that have the same beginning, the largest should match)
-     - Or maybe break a set down into a list of hashmaps arranged by the size of the string
+     2. Or maybe break a set down into a list of hashmaps arranged by the size of the string
 
 REPETITIONS
     - Add repeatable sequences allowing up to 32 repetitions

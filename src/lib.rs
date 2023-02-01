@@ -1,7 +1,10 @@
+extern crate core;
+
 mod ir;
 mod iterator;
 mod tables;
 mod tests;
+mod matcher;
 mod serde;
 
 ///Contains the `Builder` struct used to construct `Engine`s

@@ -1,9 +1,11 @@
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
     use crate::builder::Builder;
     use crate::engine::Engine;
     use crate::ir::CodeType;
     use crate::iterator::CodeIterator;
+    use crate::matcher::Matcher;
     use crate::tables::{THREE_BYTE_UNCOMMON, TWO_BYTE_COMMON};
 
     fn full_ser_deser_builder(string: &str, engine: & Engine) {
@@ -164,7 +166,10 @@ small strings will not work.");
 
 
     #[test]
-    fn serialize_tbc_test1() { serialize("that", [241, 0].as_slice()) }
+    fn serialize_tbc_test1() { serialize("that", [209, 116].as_slice()) }
+
+    #[test]
+    fn serialize_tbc_test10() { serialize(" that", [248, 1].as_slice()) }
 
     #[test]
     fn serialize_tbc_test2() { serialize(TWO_BYTE_COMMON[255], [241, 255].as_slice()) }
@@ -277,6 +282,78 @@ small strings will not work.");
     #[test]
     fn test_custom_space3() {
         full_ser_deser_builder("customstringspacetest", &Builder::default().set_custom_spaces(false).push_custom("customstringspacetest").engine())
+    }
+
+    fn matcher_test<M: Matcher>(matcher: M) {
+        use crate::matcher::Match;
+
+        for _ in 0..1000 {
+            let m = matcher.try_match_largest(false, b"address are in this thingy").unwrap();
+            assert_eq!(m, Match {
+                index: 207,
+                length: 7,
+                space: false
+            });
+
+            let m = matcher.try_match_largest(true, b" address are in this thingy").unwrap();
+            assert_eq!(m, Match {
+                index: 207,
+                length: 8,
+                space: true
+            });
+
+            let m = matcher.try_match_largest(true, b"address are in this thingy").unwrap();
+            assert_eq!(m, Match {
+                index: 207,
+                length: 7,
+                space: false
+            });
+
+            let m = matcher.try_match_largest(true, b"library this thingy").unwrap();
+            assert_eq!(m, Match {
+                index: 419,
+                length: 7,
+                space: false
+            });
+
+            assert_eq!(matcher.try_match_largest(true, b"n this thingy"), None);
+        }
+    }
+
+    #[test]
+    fn linear_search_matching() {
+
+        let slice = TWO_BYTE_COMMON.as_slice();
+
+        matcher_test(slice);
+    }
+
+    #[test]
+    fn hash_map_matching() {
+
+        let mut pairs = HashMap::new();
+
+        for (i, lemma) in TWO_BYTE_COMMON.iter().enumerate() {
+            let bytes = lemma.as_bytes();
+            let len = bytes.len();
+
+            if !pairs.contains_key(&len) {
+                pairs.insert(len, HashMap::new());
+            }
+
+            let map = pairs.get_mut(&len).unwrap();
+
+            map.insert(bytes, i);
+
+        }
+
+        let mut v: Vec<_> = pairs.iter().map(|(length, map)| (*length, map.clone())).collect();
+        v.sort_by_key(|a| a.0);
+        v.reverse();
+
+        println!("{}", TWO_BYTE_COMMON[105]);
+
+        matcher_test(v.as_slice());
     }
 
     #[test]
