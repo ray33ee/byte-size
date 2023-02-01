@@ -1,11 +1,11 @@
 [package]
 name = "byte-size"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "An effective short string shrinker with total disregard for speed, memory usage and executable size"
-repository = "https://github.com/ray33ee/sss"
+repository = "https://github.com/ray33ee/byte-size"
 license = "MIT"
-keywords = ["compression", "string", "short", "sss"]
+keywords = ["compression", "string", "short", "byte", "size"]
 categories = ["compression"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

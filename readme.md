@@ -1,18 +1,19 @@
-# sss
+# Byte Size
 
-[![Crates.io](https://img.shields.io/crates/v/sss.svg)](https://crates.io/crates/sss)
-[![Docs.rs](https://docs.rs/sss/badge.svg)](https://docs.rs/sss)
+[![Crates.io](https://img.shields.io/crates/v/byte-size.svg)](https://crates.io/crates/byte-size)
+[![Docs.rs](https://docs.rs/byte-size/badge.svg)](https://docs.rs/byte-size)
+[![License](https://img.shields.io/crates/l/byte-size.svg)](https://opensource.org/licenses/MIT)
 
 A short string compressor/decompressor that can store 20,000+ words in three bytes or less.
 
-Similar to [smaz](https://github.com/antirez/smaz), sss is able to compress small strings, something that other conventional compression algorithms struggle with.
+Similar to [smaz](https://github.com/antirez/smaz), byte-size is able to compress small strings, something that other conventional compression algorithms struggle with.
 
-However, sss is typically better than smaz, certainly for very commonly used words (out of 10000 most common words, ony 1% had better compression with smaz)
-sss can also represent numbers, repeated sequences and non-alphanumeric characters more efficiently than smaz. It can encode unicode characters, but not very efficiently. If your text includes a few unicode characters it should still compress better, but if your strings are mostly unicode characters, other schemes such as [Unishox](https://github.com/siara-cc/Unishox2) are better.
+However, byte-size is typically better than smaz, certainly for very commonly used words (out of 10000 most common words, ony 1% had better compression with smaz)
+byte-size can also represent numbers, repeated sequences and non-alphanumeric characters more efficiently than smaz. It can encode unicode characters, but not very efficiently. If your text includes a few unicode characters it should still compress better, but if your strings are mostly unicode characters, other schemes such as [Unishox](https://github.com/siara-cc/Unishox2) are better.
 
 ## Cost
 
-sss uses several tables with over 18000 total entries. Obviously this will incur a large runtime memory and binary file size cost, but if you have the memory available, it is worth it to compress more effectively.
+byte-size uses several tables with over 18000 total entries. Obviously this will incur a large runtime memory and binary file size cost, but if you have the memory available, it is worth it to compress more effectively.
 
 To match these, currently we use a poor algorithm that lops over EVERY entry in EVERY table to obtain the best map. Future versions will use a phf hash table approach.
 
@@ -22,7 +23,7 @@ Using examples directly from smaz we have:
 
 [Insert examples]
 
-We can see how every example is compressed more with sss than smaz.
+We can see how every example is compressed more with byte-size than smaz.
 
 ## Encoding
 
