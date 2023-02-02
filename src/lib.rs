@@ -1,4 +1,3 @@
-extern crate core;
 
 mod ir;
 mod iterator;
@@ -15,6 +14,7 @@ pub mod engine;
 
 ///Contains all possible error types raised by the decompressor
 pub mod error;
+mod map;
 
 ///Convenience function to compress using default options
 pub use crate::engine::compress;

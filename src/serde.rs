@@ -1,7 +1,7 @@
 use std::io::Read;
 use crate::engine::Engine;
 use crate::ir::CodeType;
-use crate::tables::{CONTROLS, ONE_BYTE_WONDER, THREE_BYTE_UNCOMMON, TWO_BYTE_COMMON};
+use crate::tables::{CONTROLS, ONE_BYTE_WONDER};
 use crate::error::Result;
 
 impl CodeType {
@@ -12,8 +12,8 @@ impl CodeType {
     const NUMBER_COUNT: usize = 32;
     const UNICODE_COUNT: usize = 1; //Unicode only takes one value out of the one bytes
     const NON_PRINTABLE_COUNT: usize = CONTROLS.len();
-    const TWO_BYTE_COUNT: usize = TWO_BYTE_COMMON.len();
-    const THREE_BYTE_COUNT: usize = THREE_BYTE_UNCOMMON.len();
+    const TWO_BYTE_COUNT: usize = crate::map::TwoByteMap::get_length();
+    const THREE_BYTE_COUNT: usize = crate::map::ThreeByteMap::get_length();
 
     pub (crate) fn deserialize_from<R: Read>(mut reader: R, engine: &Engine) -> Result<Self> {
 

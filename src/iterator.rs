@@ -1,6 +1,6 @@
 use std::str::from_utf8_unchecked;
 use crate::engine::Engine;
-use crate::tables::{ONE_BYTE_WONDER, TWO_BYTE_COMMON, THREE_BYTE_UNCOMMON, CONTROLS};
+use crate::tables::{ONE_BYTE_WONDER, CONTROLS};
 use crate::ir::{CodeType};
 use crate::matcher::{Match, Matcher};
 
@@ -85,9 +85,9 @@ impl<'a> CodeIterator<'a> {
 
             (2f32, self.engine.custom.as_slice().try_match_largest(self.engine.custom_spaces, self.main)),
 
-            (2f32, TWO_BYTE_COMMON.as_slice().try_match_largest(true, self.main)),
+            (2f32, crate::map::TwoByteMap::try_match_largest(true, self.main)),
 
-            (3f32, THREE_BYTE_UNCOMMON.as_slice().try_match_largest(true, self.main)),
+            (3f32, crate::map::ThreeByteMap::try_match_largest(true, self.main)),
 
             (1f32, ONE_BYTE_WONDER.as_slice().try_match_largest(false, self.main)),
 

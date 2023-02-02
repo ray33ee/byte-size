@@ -1,5 +1,5 @@
 use crate::engine::Engine;
-use crate::tables::{ONE_BYTE_WONDER, TWO_BYTE_COMMON, THREE_BYTE_UNCOMMON, CONTROLS, REPETITIONS};
+use crate::tables::{ONE_BYTE_WONDER, CONTROLS, REPETITIONS};
 use crate::error::Result;
 
 #[derive(PartialEq)]
@@ -45,10 +45,10 @@ impl std::fmt::Debug for CodeType {
                 write!(f, "OneByteWonder({:?})", ONE_BYTE_WONDER[*i as usize])
             }
             CodeType::TwoByteCommon(space, i) => {
-                write!(f, "TwoByteCommon(\"{}{}\")", if *space { " " } else { "" }, TWO_BYTE_COMMON[*i as usize])
+                write!(f, "TwoByteCommon(\"{}{}\")", if *space { " " } else { "" }, crate::map::TwoByteMap::get_index(*i))
             }
             CodeType::ThreeByteUncommon(space, i) => {
-                write!(f, "ThreeByteUncommon(\"{}{}\")", if *space { " " } else { "" }, THREE_BYTE_UNCOMMON[*i as usize])
+                write!(f, "ThreeByteUncommon(\"{}{}\")", if *space { " " } else { "" }, crate::map::ThreeByteMap::get_index(*i))
             }
             CodeType::Number(num) => {
                 write!(f, "Number({})", *num)
@@ -78,10 +78,11 @@ impl CodeType {
                 write!(string, "{}", ONE_BYTE_WONDER[*index])?;
             }
             CodeType::TwoByteCommon(space, index) => {
-                write!(string, "{}{}", if *space { " " } else { "" }, TWO_BYTE_COMMON[*index as usize])?;
+
+                write!(string, "{}{}", if *space { " " } else { "" }, crate::map::TwoByteMap::get_index(*index) )?;
             }
             CodeType::ThreeByteUncommon(space, index) => {
-                write!(string, "{}{}", if *space { " " } else { "" }, THREE_BYTE_UNCOMMON[*index as usize])?;
+                write!(string, "{}{}", if *space { " " } else { "" }, crate::map::ThreeByteMap::get_index(*index))?;
             }
             CodeType::UnicodeChar(ch) => {
                 write!(string, "{}", *ch)?;

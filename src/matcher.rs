@@ -113,3 +113,78 @@ impl Matcher for & [(usize, HashMap<& [u8], usize>)] {
         None
     }
 }
+
+//Takes a list of (length, hashmap) pairs ordered by decreasing length
+impl Matcher for  (&[usize], HashMap<& [u8], usize>) {
+    fn try_match_largest(&self, space: bool, string: &[u8]) -> Option<Match> {
+
+        let (lengths, map) = self;
+
+        for length in *lengths {
+
+
+            if string.len() < *length + if space {1} else {0} {
+                continue;
+            }
+
+            if space && string[0] == ' ' as u8 {
+                if let Some(index) = map.get(&string[1..*length+1]) {
+                    return Some(Match {
+                        index: *index,
+                        length: *length+1,
+                        space: true,
+                    })
+                }
+            }
+
+            if let Some(index) = map.get(&string[..*length]) {
+                return Some(Match {
+                    index: *index,
+                    length: *length,
+                    space: false,
+                })
+            }
+
+        }
+
+        None
+    }
+}
+
+//Takes a list of (length, hashmap) pairs ordered by decreasing length
+impl Matcher for  (&[usize], &phf::ordered_map::OrderedMap<& [u8], usize>) {
+    fn try_match_largest(&self, space: bool, string: &[u8]) -> Option<Match> {
+
+        let (lengths, map) = self;
+
+        for length in *lengths {
+
+            if string.len() >= *length + 1 {
+                if space && string[0] == ' ' as u8 {
+                    if let Some(index) = map.get(&string[1..*length+1]) {
+                        return Some(Match {
+                            index: *index,
+                            length: *length+1,
+                            space: true,
+                        })
+                    }
+                }
+            }
+
+            if string.len() >= *length {
+                if let Some(index) = map.get(&string[..*length]) {
+                    return Some(Match {
+                        index: *index,
+                        length: *length,
+                        space: false,
+                    })
+                }
+            }
+
+
+
+        }
+
+        None
+    }
+}
