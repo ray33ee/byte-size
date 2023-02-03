@@ -1,21 +1,30 @@
 
 use std::collections::{HashSet};
-use std::fs::File;
+use std::fs::{File, read_to_string};
 use std::io::{Write};
 use std::env;
 use std::path::Path;
 
-fn hash_generate_list<'a, I: IntoIterator<Item = & 'a str>>(list: I, name: &str, code: & mut String) {
+fn hash_generate_list<P: AsRef<Path>>(path: P, name: &str, code: & mut String, all_lengths: & mut HashSet<usize>) {
     use std::fmt::Write;
+
+    let s = read_to_string(path.as_ref()).unwrap();
 
     //Populate the lengths set with the lengths of all the lemmas in the list, and the phf builder with all (lemma, index) pairs
     let mut lengths = HashSet::new();
     let mut builder = phf_codegen::OrderedMap::new();
     let mut count = 0;
 
-    for (i, lemma) in list.into_iter().enumerate() {
+    let mut slices = Vec::new();
+
+    for lemma in s.lines() {
+        slices.push(percent_encoding::percent_decode_str(lemma).decode_utf8().unwrap());
+    }
+
+    for  (i, lemma) in slices.iter().enumerate() {
         builder.entry(lemma.as_bytes(), i.to_string().as_str());
         lengths.insert(lemma.len());
+        all_lengths.insert(lemma.len());
         count += 1;
     }
 
@@ -29,11 +38,6 @@ pub (crate) struct {};
 
 impl {} {{
 
-    pub (crate) fn try_match_largest(space: bool, string: & [u8]) -> Option<crate::matcher::Match> {{
-        use crate::matcher::Matcher;
-        (Self::get_lemma_lengths(), Self::get_map()).try_match_largest(space, string)
-    }}
-
     pub (crate) const fn get_length() -> usize {{
         {}
     }}
@@ -42,18 +46,7 @@ impl {} {{
         unsafe {{ std::str::from_utf8_unchecked(Self::get_map().index(index).unwrap().0) }}
     }}
 
-    fn get_lemma_lengths() -> & 'static [usize] {{
-        static LENGTHS: [usize; {}] = [", name, name, count, lengths.len()).unwrap();
-
-    for length in v.iter() {
-        write!(code, "{}usize, ", *length).unwrap();
-    }
-
-    write!(code, "];
-        LENGTHS.as_slice()
-    }}
-
-    fn get_map() -> & 'static phf::OrderedMap<&'static [u8], usize> {{
+    pub (crate) fn get_map() -> & 'static phf::OrderedMap<&'static [u8], usize> {{
 
         static MAP: phf::OrderedMap<&'static [u8], usize> = {};
 
@@ -61,28 +54,45 @@ impl {} {{
     }}
 
 
-}}", builder.build()).unwrap();
+}}", name, name, count, builder.build()).unwrap();
 
 }
 
 fn main() {
-    println!("cargo:rerun-if-changed=src/two_byte_common.txt");
-    println!("cargo:rerun-if-changed=src/three_byte_uncommon.txt");
+    use std::fmt::Write;
 
+    println!("cargo:rerun-if-changed=src/obw.txt");
+    println!("cargo:rerun-if-changed=src/tbc.txt");
+    println!("cargo:rerun-if-changed=src/tbu.txt");
+    println!("cargo:rerun-if-changed=src/controls.txt");
+
+    let mut all_lengths = HashSet::new();
 
     //Here we take the two_byte_common.txt and three_byte_uncommon.txt files and convert them into phf tables
     let mut code = String::new();
 
-    let s = std::fs::read_to_string(".\\two_byte_common.txt").unwrap();
+    hash_generate_list(".\\tbc.txt", "TwoByteMap", & mut code, & mut all_lengths);
 
-    hash_generate_list(s.lines(), "TwoByteMap", & mut code);
+    hash_generate_list(".\\tbu.txt", "ThreeByteMap", & mut code, & mut all_lengths);
 
-    let s = std::fs::read_to_string(".\\three_byte_uncommon.txt").unwrap();
+    hash_generate_list(".\\obw.txt", "OneByteMap", & mut code, & mut all_lengths);
 
-    hash_generate_list(s.lines(), "ThreeByteMap", & mut code);
+    hash_generate_list(".\\controls.txt", "Controls", & mut code, & mut all_lengths);
 
+    //The only time a sequence of length 1 should appear is in the OBW list, and even that is technically just a single char
+    all_lengths.remove(&1usize);
 
+    let mut all_lengths: Vec<_> = all_lengths.iter().collect();
+    all_lengths.sort();
+    all_lengths.reverse();
 
+    write!(& mut code, "pub (crate) const TOTAL_LENGTHS: [usize; {}] = [", all_lengths.len()).unwrap();
+
+    for length in all_lengths {
+        write!(& mut code, "{}usize, ", *length).unwrap();
+    }
+
+    write!(& mut code, "];").unwrap();
 
     let mut fs = File::create(Path::new(&env::var("OUT_DIR").unwrap()).join("maps.rs")).unwrap();
 

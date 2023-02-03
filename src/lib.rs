@@ -5,6 +5,7 @@ mod tables;
 mod tests;
 mod matcher;
 mod serde;
+mod map;
 
 ///Contains the `Builder` struct used to construct `Engine`s
 pub mod builder;
@@ -14,7 +15,6 @@ pub mod engine;
 
 ///Contains all possible error types raised by the decompressor
 pub mod error;
-mod map;
 
 ///Convenience function to compress using default options
 pub use crate::engine::compress;

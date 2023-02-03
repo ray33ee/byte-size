@@ -1,6 +1,5 @@
 use std::str::from_utf8_unchecked;
 use crate::engine::Engine;
-use crate::tables::{ONE_BYTE_WONDER, CONTROLS};
 use crate::ir::{CodeType};
 use crate::matcher::{Match, Matcher};
 
@@ -39,13 +38,13 @@ impl<'a> CodeIterator<'a> {
             }
         }
 
-        //Attempt to convert this number into a u64.
-        let large: u128 = unsafe { std::str::from_utf8_unchecked(&self.main[0..length]) }.parse().ok()?;
-
-        //Since numbers require at least 3 bytes to encode, numbers less than 1000 should not be encoded
-        if large < 1000 {
+        //If the number is only 1, 2 or 3 bytes as a string, the conversion is not worth it
+        if length <= 3 {
             return None;
         }
+
+        //Attempt to convert this number into a u64.
+        let large: u128 = unsafe { std::str::from_utf8_unchecked(&self.main[0..length]) }.parse().ok()?; //The bytes in &self.main[0..length] are all ascii numbers, so this unchecked is ok
 
         //Make sure it fits in 42 bits
         if large >= (2 << 66) {
@@ -60,20 +59,73 @@ impl<'a> CodeIterator<'a> {
         Some((large, length))
     }
 
+    fn match_map(string: &[u8], space: bool, map: &phf::OrderedMap<& 'static [u8], usize>, length: usize) -> Option<Match> {
+        if string.len() >= length + 1 {
+            if space && string[0] == ' ' as u8 {
+                if let Some(index) = map.get(&string[1..length+1]) {
+                    return Some(Match {
+                        index: *index,
+                        length: length+1,
+                        space: true,
+                    })
+                }
+            }
+        }
+
+        if string.len() >= length {
+            if let Some(index) = map.get(&string[..length]) {
+                return Some(Match {
+                    index: *index,
+                    length,
+                    space: false,
+                })
+            }
+        }
+
+        None
+    }
+
     fn encode_next(&self) -> (usize, CodeType) {
 
         //Basically the aim of this function is to pick the best way to encode the next chunk of bytes.
         //We use try_wonder, try_common and try_uncommon to create 3 possible types of encoding.
         //We then pick the most compact version (if all 3 work equally well, we pick the version that matches the largest string)
 
-        //Try and match a number. (make sure the number, converted back to a string matches)
+
+        //4. Try and match a custom string first, as custom strings should be chosen such that they are better stored as a two byte custom than as other forms
+        if let Some(m) = self.engine.custom.as_slice().try_match_largest(self.engine.custom_spaces, self.main) {
+            return (m.length, CodeType::Custom(m.space, m.index))
+        }
+
+        // We try and match from all 3 maps together, starting from the largest length
+        // We start with the largest length and the smallest map, this should mean
+        // our result has the best length/cost ratio
+        for length in crate::map::TOTAL_LENGTHS {
+
+            if let Some(m) = Self::match_map(self.main, false, crate::map::OneByteMap::get_map(), length) {
+                return (m.length, CodeType::OneByteWonder(m.index))
+            }
+
+            if let Some(m) = Self::match_map(self.main, true, crate::map::TwoByteMap::get_map(), length) {
+                return (m.length, CodeType::TwoByteCommon(m.space, m.index))
+            }
+
+            if let Some(m) = Self::match_map(self.main, true, crate::map::ThreeByteMap::get_map(), length) {
+                return (m.length, CodeType::ThreeByteUncommon(m.space, m.index))
+            }
+
+        }
+
+        //1. Try match a repetition
+
+        //2. Try and match a number. (make sure the number, converted back to a string matches)
         if let Some((number, length)) = self.try_number() {
             return (length, CodeType::Number(number))
         }
 
-        //If we have a non-ascii character, encode as a unicode scalar value
+        //3. Try and match a unicode character
         {
-            let s = unsafe { from_utf8_unchecked(self.main) };
+            let s = unsafe { from_utf8_unchecked(self.main) }; //We can use unchecked here because we will always start at a unicode boundary
             if let Some(first) = s.chars().nth(0) {
                 if !first.is_ascii() {
                     return (first.len_utf8(), CodeType::UnicodeChar(first))
@@ -81,73 +133,15 @@ impl<'a> CodeIterator<'a> {
             }
         }
 
-        let list = [
 
-            (2f32, self.engine.custom.as_slice().try_match_largest(self.engine.custom_spaces, self.main)),
-
-            (2f32, crate::map::TwoByteMap::try_match_largest(true, self.main)),
-
-            (3f32, crate::map::ThreeByteMap::try_match_largest(true, self.main)),
-
-            (1f32, ONE_BYTE_WONDER.as_slice().try_match_largest(false, self.main)),
-
-        ];
-
-        let mut largest_ratio_triple = (0f32, None, Match { index: 0, length: 0, space: false });
-        let mut largest_length_triple = (0f32, None, Match { index: 0, length: 0, space: false });
-        let mut same = true;
-
-        for (i, (cost, o_match)) in list.iter().enumerate() {
-            if let Some(m) = o_match {
-                let ratio = m.length as f32 / cost;
-
-                if ratio > largest_ratio_triple.0 {
-                    largest_ratio_triple = (ratio, Some(i), m.clone());
-                }
-
-                if m.length > largest_length_triple.2.length {
-                    largest_length_triple = (ratio, Some(i), m.clone());
-                }
-            }
+        //8. Try and match one of the non-printables
+        if let Some(index) = crate::map::Controls::get_map().get(& [self.main[0]]) {
+            return (1, CodeType::Unprintable(*index))
         }
 
-        //Loop over the largest ratio ratio and see if its the same as all the other ratios
-        for (cost, o_match) in list.iter() {
-            if let Some(m) = o_match {
-                let ratio = m.length as f32 / cost;
-                same = same && (ratio == largest_ratio_triple.0)
-            }
-        }
+        //If none of the above encoding schemes work, we just encode a single ascii character
+        (1, CodeType::OneByteWonder(self.main[0] as usize))
 
-        //If we have found the largest ratio
-        if let Some(_) = largest_ratio_triple.1 {
-
-            //We have a ratio that is strictly larger than all the others
-            let chosen_triplet = if !same {
-                largest_ratio_triple
-            } else {
-                largest_length_triple
-            };
-
-            match chosen_triplet.1.unwrap() { //This unwrap will always be ok because of the if let on largest_ratio_triple.2
-                0 => {(chosen_triplet.2.length, CodeType::Custom(chosen_triplet.2.space, chosen_triplet.2.index))},
-                3 => {(chosen_triplet.2.length, CodeType::OneByteWonder(chosen_triplet.2.index))},
-                1 => {(chosen_triplet.2.length, CodeType::TwoByteCommon(chosen_triplet.2.space, chosen_triplet.2.index))},
-                2 => {(chosen_triplet.2.length, CodeType::ThreeByteUncommon(chosen_triplet.2.space, chosen_triplet.2.index))},
-                _ => {panic!("Invalid byte index ")}
-            }
-
-        } else {
-            //It might be a non-printable
-
-            if let Ok(pos) = CONTROLS.binary_search(&self.main[0]) {
-                return (1, CodeType::Unprintable(pos))
-            }
-
-
-            //If none of the above encoding schemes work, we just encode a single ascii character
-            (1, CodeType::OneByteWonder(self.main[0] as usize))
-        }
 
     }
 }

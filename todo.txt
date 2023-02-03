@@ -1,6 +1,7 @@
 
 - Figure out why 'their' is represented as 3 OBW and one 1 TBU.
 - Figure out how to add one byte wonder list to phf maps (we cant do it as is because the txt file contains some newline characters that wouldn't agree with the lines function
+- Reorganise source directory structure
 
 REPETITIONS
     - Add repeatable sequences allowing up to 32 repetitions

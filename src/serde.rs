@@ -1,17 +1,16 @@
 use std::io::Read;
 use crate::engine::Engine;
 use crate::ir::CodeType;
-use crate::tables::{CONTROLS, ONE_BYTE_WONDER};
 use crate::error::Result;
 
 impl CodeType {
 
-    const ONE_BYTE_WONDER_COUNT: usize = ONE_BYTE_WONDER.len();
+    const ONE_BYTE_WONDER_COUNT: usize = crate::map::OneByteMap::get_length();
     const CUSTOM_COUNT: usize = 32;
     const REPETITION_COUNT: usize = 32;
     const NUMBER_COUNT: usize = 32;
     const UNICODE_COUNT: usize = 1; //Unicode only takes one value out of the one bytes
-    const NON_PRINTABLE_COUNT: usize = CONTROLS.len();
+    const NON_PRINTABLE_COUNT: usize = crate::map::Controls::get_length();
     const TWO_BYTE_COUNT: usize = crate::map::TwoByteMap::get_length();
     const THREE_BYTE_COUNT: usize = crate::map::ThreeByteMap::get_length();
 

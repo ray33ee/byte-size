@@ -1,5 +1,5 @@
 use crate::engine::Engine;
-use crate::tables::{ONE_BYTE_WONDER, CONTROLS, REPETITIONS};
+use crate::tables::{REPETITIONS};
 use crate::error::Result;
 
 #[derive(PartialEq)]
@@ -42,7 +42,7 @@ impl std::fmt::Debug for CodeType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             CodeType::OneByteWonder(i) => {
-                write!(f, "OneByteWonder({:?})", ONE_BYTE_WONDER[*i as usize])
+                write!(f, "OneByteWonder({:?})", crate::map::OneByteMap::get_index(*i))
             }
             CodeType::TwoByteCommon(space, i) => {
                 write!(f, "TwoByteCommon(\"{}{}\")", if *space { " " } else { "" }, crate::map::TwoByteMap::get_index(*i))
@@ -56,8 +56,8 @@ impl std::fmt::Debug for CodeType {
             CodeType::UnicodeChar(ch) => {
                 write!(f, "UnicodeChar({:?})", *ch)
             }
-            CodeType::Unprintable(ch) => {
-                write!(f, "Unprintable(\'\\x{:02x}\')", CONTROLS[*ch as usize])
+            CodeType::Unprintable(i) => {
+                write!(f, "Unprintable({:?})", crate::map::Controls::get_index(*i))
             }
             CodeType::Repetitions(_, _) => {
                 todo!()
@@ -75,7 +75,7 @@ impl CodeType {
 
         match self {
             CodeType::OneByteWonder(index) => {
-                write!(string, "{}", ONE_BYTE_WONDER[*index])?;
+                write!(string, "{}", crate::map::OneByteMap::get_index(*index))?;
             }
             CodeType::TwoByteCommon(space, index) => {
 
@@ -91,7 +91,7 @@ impl CodeType {
                 write!(string, "{}", *num)?;
             }
             CodeType::Unprintable(index) => {
-                write!(string, "{}", CONTROLS[*index as usize] as char)?;
+                write!(string, "{}", crate::map::Controls::get_index(*index))?;
             }
             CodeType::Repetitions(count, index) => {
                 for _ in 0..*count {
