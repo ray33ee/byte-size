@@ -8,6 +8,7 @@ use std::path::Path;
 fn hash_generate_list<P: AsRef<Path>>(path: P, name: &str, code: & mut String, all_lengths: & mut HashSet<usize>) -> HashSet<usize> {
     use std::fmt::Write;
 
+    println!("Path: {}", path.as_ref().display());
     let s = read_to_string(path.as_ref()).unwrap();
 
     //Populate the lengths set with the lengths of all the lemmas in the list, and the phf builder with all (lemma, index) pairs
@@ -57,7 +58,7 @@ impl {} {{
 fn main() {
     use std::fmt::Write;
 
-    //println!("cargo:rerun-if-changed=obw.txt");
+    println!("cargo:rerun-if-changed=obw.txt");
     println!("cargo:rerun-if-changed=tbc.txt");
     println!("cargo:rerun-if-changed=tbu.txt");
     println!("cargo:rerun-if-changed=controls.txt");
@@ -74,15 +75,15 @@ fn main() {
     //Here we take the two_byte_common.txt and three_byte_uncommon.txt files and convert them into phf tables
     let mut code = String::new();
 
-    hash_generate_list("tbc.txt", "TwoByteMap", & mut code, & mut all_lengths);
+    hash_generate_list("./tbc.txt", "TwoByteMap", & mut code, & mut all_lengths);
 
-    hash_generate_list("tbu.txt", "ThreeByteMap", & mut code, & mut all_lengths);
+    hash_generate_list("./tbu.txt", "ThreeByteMap", & mut code, & mut all_lengths);
 
-    hash_generate_list("obw.txt", "OneByteMap", & mut code, & mut all_lengths);
+    hash_generate_list("./obw.txt", "OneByteMap", & mut code, & mut all_lengths);
 
-    hash_generate_list("controls.txt", "Controls", & mut code, & mut all_lengths);
+    hash_generate_list("./controls.txt", "Controls", & mut code, & mut all_lengths);
 
-    let rep_lengths = hash_generate_list(".\\repetitions.txt", "Repetitions", & mut code, & mut all_lengths);
+    let rep_lengths = hash_generate_list("./repetitions.txt", "Repetitions", & mut code, & mut all_lengths);
 
     let mut rep_lengths: Vec<_> = rep_lengths.iter().collect();
     rep_lengths.sort();
