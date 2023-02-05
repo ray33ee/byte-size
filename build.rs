@@ -57,17 +57,11 @@ impl {} {{
 fn main() {
     use std::fmt::Write;
 
-    if let Ok(s) = env::var("DOCS_RS") {
-        if s == "1" {
-            return;
-        }
-    }
-
-    println!("cargo:rerun-if-changed=src/obw.txt");
-    println!("cargo:rerun-if-changed=src/tbc.txt");
-    println!("cargo:rerun-if-changed=src/tbu.txt");
-    println!("cargo:rerun-if-changed=src/controls.txt");
-    println!("cargo:rerun-if-changed=src/repetitions.txt");
+    println!("cargo:rerun-if-changed=obw.txt");
+    println!("cargo:rerun-if-changed=tbc.txt");
+    println!("cargo:rerun-if-changed=tbu.txt");
+    println!("cargo:rerun-if-changed=controls.txt");
+    println!("cargo:rerun-if-changed=repetitions.txt");
 
     let mut all_lengths = HashSet::new();
 
