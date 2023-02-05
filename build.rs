@@ -57,7 +57,7 @@ impl {} {{
 fn main() {
     use std::fmt::Write;
 
-    println!("cargo:rerun-if-changed=obw.txt");
+    //println!("cargo:rerun-if-changed=obw.txt");
     println!("cargo:rerun-if-changed=tbc.txt");
     println!("cargo:rerun-if-changed=tbu.txt");
     println!("cargo:rerun-if-changed=controls.txt");
@@ -68,13 +68,13 @@ fn main() {
     //Here we take the two_byte_common.txt and three_byte_uncommon.txt files and convert them into phf tables
     let mut code = String::new();
 
-    hash_generate_list(".\\tbc.txt", "TwoByteMap", & mut code, & mut all_lengths);
+    hash_generate_list("tbc.txt", "TwoByteMap", & mut code, & mut all_lengths);
 
-    hash_generate_list(".\\tbu.txt", "ThreeByteMap", & mut code, & mut all_lengths);
+    hash_generate_list("tbu.txt", "ThreeByteMap", & mut code, & mut all_lengths);
 
-    hash_generate_list(".\\obw.txt", "OneByteMap", & mut code, & mut all_lengths);
+    hash_generate_list("obw.txt", "OneByteMap", & mut code, & mut all_lengths);
 
-    hash_generate_list(".\\controls.txt", "Controls", & mut code, & mut all_lengths);
+    hash_generate_list("controls.txt", "Controls", & mut code, & mut all_lengths);
 
     let rep_lengths = hash_generate_list(".\\repetitions.txt", "Repetitions", & mut code, & mut all_lengths);
 
