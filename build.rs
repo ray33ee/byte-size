@@ -8,7 +8,6 @@ use std::path::Path;
 fn hash_generate_list<P: AsRef<Path>>(path: P, name: &str, code: & mut String, all_lengths: & mut HashSet<usize>) -> HashSet<usize> {
     use std::fmt::Write;
 
-    println!("Path: {}", path.as_ref().display());
     let s = read_to_string(path.as_ref()).unwrap();
 
     //Populate the lengths set with the lengths of all the lemmas in the list, and the phf builder with all (lemma, index) pairs
@@ -63,12 +62,6 @@ fn main() {
     println!("cargo:rerun-if-changed=tbu.txt");
     println!("cargo:rerun-if-changed=controls.txt");
     println!("cargo:rerun-if-changed=repetitions.txt");
-
-    let paths = std::fs::read_dir("./").unwrap();
-
-    for path in paths {
-        println!("Name: {}", path.unwrap().path().display())
-    }
 
     let mut all_lengths = HashSet::new();
 

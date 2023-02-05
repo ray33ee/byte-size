@@ -1,6 +1,6 @@
 [package]
 name = "byte-size"
-version = "0.2.5-b"
+version = "0.2.6"
 edition = "2021"
 description = "An effective short string shrinker with total disregard for speed, memory usage and executable size"
 repository = "https://github.com/ray33ee/byte-size"

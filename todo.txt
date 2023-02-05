@@ -1,7 +1,5 @@
 
 - Reorganise source directory structure
 - Make sure build script only takes 240 OBW, 1793 TBC and 16512 TBU sequences.
-- Figure out why docs.rs upload failed
-    - Edit: failed because docs.rs couldn't find the txt files we  use to generate the maps in the build script
 - Use a better system for matching the Custom words (maybe use a bimap)
 - Phase out the Matcher trait and its implementations
