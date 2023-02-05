@@ -63,6 +63,12 @@ fn main() {
     println!("cargo:rerun-if-changed=controls.txt");
     println!("cargo:rerun-if-changed=repetitions.txt");
 
+    let paths = std::fs::read_dir("./").unwrap();
+
+    for path in paths {
+        println!("Name: {}", path.unwrap().path().display())
+    }
+
     let mut all_lengths = HashSet::new();
 
     //Here we take the two_byte_common.txt and three_byte_uncommon.txt files and convert them into phf tables
