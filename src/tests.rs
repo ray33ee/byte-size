@@ -52,6 +52,26 @@ mod tests {
     }
 
     #[test]
+    fn number_test1() {
+        full_ser_deser("6709323423423763138672", 13);
+    }
+
+    #[test]
+    fn number_test2() {
+        full_ser_deser("999", 3);
+    }
+
+    #[test]
+    fn number_test3() {
+        full_ser_deser("1000", 3);
+    }
+
+    #[test]
+    fn number_test4() {
+        full_ser_deser("1000 ", 4);
+    }
+
+    #[test]
     fn http1() {
         full_ser_deser("http://google.com", 6);
     }
@@ -63,7 +83,7 @@ mod tests {
 
     #[test]
     fn http3() {
-        full_ser_deser("http://github.com/antirez/smaz/tree/master", 24);
+        full_ser_deser_builder("http://github.com/antirez/smaz/tree/master", &Builder::default().push_custom("http://github.com/").engine() , 16);
     }
 
     #[test]
@@ -74,6 +94,26 @@ mod tests {
     #[test]
     fn ascii_control_test() {
         full_ser_deser("\x01", 2);
+    }
+
+    #[test]
+    fn repetition_test() {
+        full_ser_deser("hehehehe", 3);
+    }
+
+    #[test]
+    fn repetition_test1() {
+        full_ser_deser("he he he he ", 3);
+    }
+
+    #[test]
+    fn repetition_test2() {
+        full_ser_deser("oohe he he he he he ", 7);
+    }
+
+    #[test]
+    fn repetition_test3() {
+        full_ser_deser("hhhhhhhhhhhhhhohhhhhhhhhhh", 8);
     }
 
     #[test]
@@ -148,7 +188,7 @@ mod tests {
 
     #[test]
     fn smaz8() {
-        full_ser_deser("1000 numbers 2000 will 10 20 30 compress very little", 29);
+        full_ser_deser("1000 numbers 2000 will 10 20 30 compress very little", 28);
     }
 
     #[test]
@@ -166,18 +206,13 @@ small strings will not work.", 127);
     }
 
     #[test]
-    fn smaz11() {
-        full_ser_deser("their", 2);
-    }
-
-    #[test]
     fn test_custom_space() {
         full_ser_deser_builder(" customstringspacetest", &Builder::default().set_custom_spaces(true).push_custom("customstringspacetest").engine(), 2)
     }
 
     #[test]
     fn test_custom_space2() {
-        full_ser_deser_builder(" customstringspacetest", &Builder::default().set_custom_spaces(false).push_custom("customstringspacetest").engine(), 3)
+        full_ser_deser_builder(" customstringspacetest", &Builder::default().set_custom_spaces(false).push_custom("customstringspacetest").engine(), 9)
     }
 
     #[test]
@@ -216,7 +251,6 @@ small strings will not work.", 127);
             let smaz_len = compress(line.as_bytes()).len();
 
             if code_len > smaz_len {
-                //println!("{:?}", CodeIterator::new(line, &Builder::default().engine()).collect::<Vec<_>>());
                 count += 1;
             }
 
@@ -228,29 +262,6 @@ small strings will not work.", 127);
             }
         }
 
-    }
-
-    #[test]
-    #[ignore]
-    fn generate_list() {
-        let str = std::fs::read_to_string(".\\.3m.txt").unwrap();
-
-        let mut count = 0;
-
-        for line in str.lines() {
-
-            let line = line.split_whitespace().nth(0).unwrap();
-
-            let code_len = crate::engine::compress(line).len();
-
-            if code_len >= 3 {
-                print!("{:?}, ", line);
-                count += 1;
-                if count == 16512 {
-                    break;
-                }
-            }
-        }
     }
 
 

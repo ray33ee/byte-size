@@ -5,7 +5,7 @@ use std::io::{Write};
 use std::env;
 use std::path::Path;
 
-fn hash_generate_list<P: AsRef<Path>>(path: P, name: &str, code: & mut String, all_lengths: & mut HashSet<usize>) {
+fn hash_generate_list<P: AsRef<Path>>(path: P, name: &str, code: & mut String, all_lengths: & mut HashSet<usize>) -> HashSet<usize> {
     use std::fmt::Write;
 
     let s = read_to_string(path.as_ref()).unwrap();
@@ -27,11 +27,6 @@ fn hash_generate_list<P: AsRef<Path>>(path: P, name: &str, code: & mut String, a
         all_lengths.insert(lemma.len());
         count += 1;
     }
-
-    //Turn the length set into a vector sorted from largest to smallest length
-    let mut v: Vec<_> = lengths.iter().map(|x| *x).collect();
-    v.sort();
-    v.reverse();
 
     write!(code, "
 pub (crate) struct {};
@@ -56,15 +51,23 @@ impl {} {{
 
 }}", name, name, count, builder.build()).unwrap();
 
+    lengths
 }
 
 fn main() {
     use std::fmt::Write;
 
+    if let Ok(s) = env::var("DOCS_RS") {
+        if s == "1" {
+            return;
+        }
+    }
+
     println!("cargo:rerun-if-changed=src/obw.txt");
     println!("cargo:rerun-if-changed=src/tbc.txt");
     println!("cargo:rerun-if-changed=src/tbu.txt");
     println!("cargo:rerun-if-changed=src/controls.txt");
+    println!("cargo:rerun-if-changed=src/repetitions.txt");
 
     let mut all_lengths = HashSet::new();
 
@@ -79,6 +82,12 @@ fn main() {
 
     hash_generate_list(".\\controls.txt", "Controls", & mut code, & mut all_lengths);
 
+    let rep_lengths = hash_generate_list(".\\repetitions.txt", "Repetitions", & mut code, & mut all_lengths);
+
+    let mut rep_lengths: Vec<_> = rep_lengths.iter().collect();
+    rep_lengths.sort();
+    rep_lengths.reverse();
+
     //The only time a sequence of length 1 should appear is in the OBW list, and even that is technically just a single char
     all_lengths.remove(&1usize);
 
@@ -89,6 +98,14 @@ fn main() {
     write!(& mut code, "pub (crate) const TOTAL_LENGTHS: [usize; {}] = [", all_lengths.len()).unwrap();
 
     for length in all_lengths {
+        write!(& mut code, "{}usize, ", *length).unwrap();
+    }
+
+    write!(& mut code, "];\n\n").unwrap();
+
+    write!(& mut code, "pub (crate) const REPETITION_LENGTHS: [usize; {}] = [", rep_lengths.len()).unwrap();
+
+    for length in rep_lengths {
         write!(& mut code, "{}usize, ", *length).unwrap();
     }
 

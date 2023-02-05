@@ -1,5 +1,4 @@
 use crate::engine::Engine;
-use crate::tables::{REPETITIONS};
 use crate::error::Result;
 
 #[derive(PartialEq)]
@@ -59,8 +58,12 @@ impl std::fmt::Debug for CodeType {
             CodeType::Unprintable(i) => {
                 write!(f, "Unprintable({:?})", crate::map::Controls::get_index(*i))
             }
-            CodeType::Repetitions(_, _) => {
-                todo!()
+            CodeType::Repetitions(count, index) => {
+                write!(f, "Repetition(\"")?;
+                for _ in 0..*count {
+                    write!(f, "{}", crate::map::Repetitions::get_index(*index))?;
+                }
+                write!(f, "\")")
             }
             CodeType::Custom(space, ind) => {
                 write!(f, "Custom({}{})", if *space { " " } else { "" }, *ind)
@@ -95,7 +98,7 @@ impl CodeType {
             }
             CodeType::Repetitions(count, index) => {
                 for _ in 0..*count {
-                    write!(string, "{}", REPETITIONS[*index])?;
+                    write!(string, "{}", crate::map::Repetitions::get_index(*index))?;
                 }
             }
             CodeType::Custom(space, index) => {

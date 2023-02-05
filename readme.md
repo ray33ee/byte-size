@@ -23,6 +23,19 @@ Using examples directly from smaz we have:
 
 We can see how every example is compressed more with byte-size than smaz.
 
+## How?
+
+It's basically just two tables one of about a thousand most commonly used lemmas (expressible as 2 bytes) and another of 10s of thousands of lemmas (expressible as 3 bytes)
+
+On top of that, we have a few commonly used 2 and 3 byte sequences expressible as just 1 byte, that can be used as lemma prefix/sufixes, or can be used to construct words not in either list.
+
+There are 3 lists:
+  - One byte wonders (OBW): Made up of the printable ascii characters (with a few control sequences), common prefix/suffixes and common bigrams.
+  - Two byte common (TBC): Made up of 1793 of the most common lemmas (that aren't also in the OBW list)
+  - Three byte uncommon (TBU): Made up of  16512 of the most common lemmas (that aren't in either previous lists)
+
+These lists are stored in the package root directory. These lists can be modified and these modifications will work. Lists are represented as a file, where each line is a new lemma encoded via percent encoding (to allow non printable characters and unicode sequences)
+
 ## Encoding
 
 - the one byte wonder sequences are taken from [smaz](https://github.com/antirez/smaz/blob/master/smaz.c)

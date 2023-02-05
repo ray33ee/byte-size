@@ -1,13 +1,7 @@
 
-- Figure out why 'their' is represented as 3 OBW and one 1 TBU.
-- Figure out how to add one byte wonder list to phf maps (we cant do it as is because the txt file contains some newline characters that wouldn't agree with the lines function
 - Reorganise source directory structure
-
-REPETITIONS
-    - Add repeatable sequences allowing up to 32 repetitions
-        - Repetitions include ascii characters, and also other strings commonly repeated ('hehe',. 'ha ha', 'soooooo', etc. with capital letters too).
-        - Create a special ascii table that includes commonly repeated sequences in the gaps
-        - Match repetitions before numbers and compare which is better
-
-TABLES
-    - Use build scripts to generate the tables.rs file at build time
+- Make sure build script only takes 240 OBW, 1793 TBC and 16512 TBU sequences.
+- Figure out why docs.rs upload failed
+    - Edit: failed because docs.rs couldn't find the txt files we  use to generate the maps in the build script
+- Use a better system for matching the Custom words (maybe use a bimap)
+- Phase out the Matcher trait and its implementations

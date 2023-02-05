@@ -1,4 +1,8 @@
 
+//! Byte Size is a library that can compress short strings more efficiently than smaz, at the expense of extra runtime cost.
+//!
+//! See [readme](https://github.com/ray33ee/byte-size/blob/main/readme.md) for more information
+
 mod ir;
 mod iterator;
 mod tables;
