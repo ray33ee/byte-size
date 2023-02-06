@@ -1,7 +1,7 @@
 use std::str::from_utf8_unchecked;
 use crate::engine::Engine;
 use crate::ir::{CodeType};
-use crate::matcher::{Match, Matcher};
+use crate::bi::{Match, Bi};
 
 pub (crate) struct CodeIterator<'a> {
     main: & 'a [u8],
@@ -45,8 +45,6 @@ impl<'a> CodeIterator<'a> {
             return None;
         }
 
-        println!("here '{}'", unsafe { std::str::from_utf8_unchecked(&self.main[0..length]) });
-
         //Attempt to convert this number into a u64.
         let large: u128 = unsafe { std::str::from_utf8_unchecked(&self.main[0..length]) }.parse().ok()?; //The bytes in &self.main[0..length] are all ascii numbers, so this unchecked is ok
 
@@ -61,32 +59,6 @@ impl<'a> CodeIterator<'a> {
         }
 
         Some((large, length))
-    }
-
-    fn match_map(string: &[u8], space: bool, map: &phf::OrderedMap<& 'static [u8], usize>, length: usize) -> Option<Match> {
-        if string.len() >= length + 1 {
-            if space && string[0] == ' ' as u8 {
-                if let Some(index) = map.get(&string[1..length+1]) {
-                    return Some(Match {
-                        index: *index,
-                        length: length+1,
-                        space: true,
-                    })
-                }
-            }
-        }
-
-        if string.len() >= length {
-            if let Some(index) = map.get(&string[..length]) {
-                return Some(Match {
-                    index: *index,
-                    length,
-                    space: false,
-                })
-            }
-        }
-
-        None
     }
 
     fn try_repetitions(&self) -> Option<(usize, Match)> {
@@ -124,7 +96,7 @@ impl<'a> CodeIterator<'a> {
             }
 
             if count > 3 {
-                println!("rep: {} count: {}", unsafe { from_utf8_unchecked(self.main) }, count);
+
                 return Some((count, Match {
                     index: *ind.unwrap(),
                     length: count * length,
@@ -136,6 +108,8 @@ impl<'a> CodeIterator<'a> {
         None
     }
 
+
+
     fn encode_next(&self) -> (usize, CodeType) {
 
         //Basically the aim of this function is to pick the best way to encode the next chunk of bytes.
@@ -144,8 +118,10 @@ impl<'a> CodeIterator<'a> {
 
 
         //4. Try and match a custom string first, as custom strings should be chosen such that they are better stored as a two byte custom than as other forms
-        if let Some(m) = self.engine.custom.as_slice().try_match_largest(self.engine.custom_spaces, self.main) {
-            return (m.length, CodeType::Custom(m.space, m.index))
+        for length in &self.engine.lengths {
+            if let Some(m) = self.engine.custom_map.match_spaced_sequence(self.main, self.engine.custom_spaces, *length) {
+                return (m.length, CodeType::Custom(m.space, m.index))
+            }
         }
 
         //1. Try match a repetition
@@ -163,15 +139,15 @@ impl<'a> CodeIterator<'a> {
         // our result has the best length/cost ratio
         for length in crate::map::TOTAL_LENGTHS {
 
-            if let Some(m) = Self::match_map(self.main, false, crate::map::OneByteMap::get_map(), length) {
+            if let Some(m) = crate::map::OneByteMap::get_map().match_spaced_sequence(self.main, false, length) {
                 return (m.length, CodeType::OneByteWonder(m.index))
             }
 
-            if let Some(m) = Self::match_map(self.main, true, crate::map::TwoByteMap::get_map(), length) {
+            if let Some(m) = crate::map::TwoByteMap::get_map().match_spaced_sequence(self.main, true, length) {
                 return (m.length, CodeType::TwoByteCommon(m.space, m.index))
             }
 
-            if let Some(m) = Self::match_map(self.main, true, crate::map::ThreeByteMap::get_map(), length) {
+            if let Some(m) = crate::map::ThreeByteMap::get_map().match_spaced_sequence(self.main, true, length) {
                 return (m.length, CodeType::ThreeByteUncommon(m.space, m.index))
             }
 

@@ -8,10 +8,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8357f6b7-4019-4815-a1cd-4998aad5b1ba" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/bi.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/todo.txt" beforeDir="false" afterPath="$PROJECT_DIR$/todo.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controls.txt" beforeDir="false" afterPath="$PROJECT_DIR$/lists/controls.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obw.txt" beforeDir="false" afterPath="$PROJECT_DIR$/lists/obw.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/repetitions.txt" beforeDir="false" afterPath="$PROJECT_DIR$/lists/repetitions.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/builder.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/builder.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/engine.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/engine.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ir.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/ir.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/iterator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/iterator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/matcher.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tables.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tests.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/tests.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tbc.txt" beforeDir="false" afterPath="$PROJECT_DIR$/lists/tbc.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tbu.txt" beforeDir="false" afterPath="$PROJECT_DIR$/lists/tbu.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,6 +68,12 @@
     &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\Software Projects\IntelliJ\byte-size" />
+      <recent name="E:\Software Projects\IntelliJ\byte-size\.idea\lists" />
+    </key>
+  </component>
   <component name="RunManager" selected="Cargo.Publish">
     <configuration name="Build" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="build " />
@@ -126,6 +145,23 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Test tests::tests::test_lengths" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package byte-size --lib tests::tests::test_lengths -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="test --package byte-size --lib tests" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -149,7 +185,13 @@
       <item itemvalue="Cargo.Package" />
       <item itemvalue="Cargo.Doc" />
       <item itemvalue="Cargo.Publish" />
+      <item itemvalue="Cargo.Test tests::tests::test_lengths" />
     </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo.Test tests::tests::test_lengths" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="RustProjectSettings">
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />

@@ -38,7 +38,7 @@ impl {} {{
     }}
 
     pub (crate) fn get_index(index: usize) -> & 'static str {{
-        unsafe {{ std::str::from_utf8_unchecked(Self::get_map().index(index).unwrap().0) }}
+        unsafe {{ std::str::from_utf8_unchecked(Self::get_map().index(index).unwrap().0) }} //This unsafe is justified as the build script checks the lists for invalid utf-8 strings
     }}
 
     pub (crate) fn get_map() -> & 'static phf::OrderedMap<&'static [u8], usize> {{
@@ -57,26 +57,26 @@ impl {} {{
 fn main() {
     use std::fmt::Write;
 
-    println!("cargo:rerun-if-changed=obw.txt");
-    println!("cargo:rerun-if-changed=tbc.txt");
-    println!("cargo:rerun-if-changed=tbu.txt");
-    println!("cargo:rerun-if-changed=controls.txt");
-    println!("cargo:rerun-if-changed=repetitions.txt");
+    println!("cargo:rerun-if-changed=./lists/obw.txt");
+    println!("cargo:rerun-if-changed=./lists/tbc.txt");
+    println!("cargo:rerun-if-changed=./lists/tbu.txt");
+    println!("cargo:rerun-if-changed=./lists/controls.txt");
+    println!("cargo:rerun-if-changed=./lists/repetitions.txt");
 
     let mut all_lengths = HashSet::new();
 
     //Here we take the two_byte_common.txt and three_byte_uncommon.txt files and convert them into phf tables
     let mut code = String::new();
 
-    hash_generate_list("./tbc.txt", "TwoByteMap", & mut code, & mut all_lengths);
+    hash_generate_list("./lists/tbc.txt", "TwoByteMap", & mut code, & mut all_lengths);
 
-    hash_generate_list("./tbu.txt", "ThreeByteMap", & mut code, & mut all_lengths);
+    hash_generate_list("./lists/tbu.txt", "ThreeByteMap", & mut code, & mut all_lengths);
 
-    hash_generate_list("./obw.txt", "OneByteMap", & mut code, & mut all_lengths);
+    hash_generate_list("./lists/obw.txt", "OneByteMap", & mut code, & mut all_lengths);
 
-    hash_generate_list("./controls.txt", "Controls", & mut code, & mut all_lengths);
+    hash_generate_list("./lists/controls.txt", "Controls", & mut code, & mut all_lengths);
 
-    let rep_lengths = hash_generate_list("./repetitions.txt", "Repetitions", & mut code, & mut all_lengths);
+    let rep_lengths = hash_generate_list("./lists/repetitions.txt", "Repetitions", & mut code, & mut all_lengths);
 
     let mut rep_lengths: Vec<_> = rep_lengths.iter().collect();
     rep_lengths.sort();

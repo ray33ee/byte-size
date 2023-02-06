@@ -233,6 +233,28 @@ small strings will not work.", 127);
     }
 
     #[test]
+    fn test_lengths() {
+        let mut count = 0;
+
+        let str = std::fs::read_to_string(".\\.3m.txt").unwrap();
+
+        for line in str.lines().take(10000) {
+            let line = line.split_whitespace().nth(0).unwrap();
+
+            let code_len = crate::engine::compress(line).len();
+
+            if code_len > 3 {
+                println!("{}: {:?}", line, CodeIterator::new(line, &Builder::default().engine()).collect::<Vec<_>>());
+                count += 1;
+            }
+
+
+        }
+
+        assert_eq!(count, 0)
+    }
+
+    #[test]
     fn test_list() {
         use smaz::compress;
 

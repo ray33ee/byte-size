@@ -1,3 +1,4 @@
+use bimap::BiHashMap;
 use crate::builder::Builder;
 use crate::iterator::CodeIterator;
 use crate::error::Result;
@@ -7,8 +8,9 @@ use crate::ir::CodeType;
 ///
 /// Can only be created with the [Builder] struct via [Builder::engine]
 pub struct Engine {
-    pub (crate) custom: Vec<& 'static str>,
     pub (crate) custom_spaces: bool,
+    pub (crate) custom_map: BiHashMap<& 'static [u8], usize>,
+    pub (crate) lengths: Vec<usize>,
 }
 
 impl Engine {

@@ -1,4 +1,5 @@
-
+use std::collections::{HashSet};
+use bimap::BiHashMap;
 use crate::engine::Engine;
 
 ///Compress/decompress with specific options
@@ -75,9 +76,23 @@ impl Builder {
 
         let v = if self.custom.len() <= max_len { self.custom.clone() } else { (&self.custom[0..max_len]).to_vec() };
 
+        let mut map = BiHashMap::new();
+        let mut lengths = HashSet::new();
+
+        for (i, string) in v.iter().enumerate() {
+            map.insert(string.as_bytes(), i);
+            lengths.insert(string.len());
+
+        }
+
+        let mut lengths: Vec<_> = lengths.iter().map(|x| *x).collect();
+        lengths.sort();
+        lengths.reverse();
+
         Engine {
-            custom: v,
             custom_spaces: self.custom_spaces,
+            custom_map: map,
+            lengths,
         }
     }
 

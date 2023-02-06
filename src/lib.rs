@@ -3,13 +3,14 @@
 //!
 //! See [readme](https://github.com/ray33ee/byte-size/blob/main/readme.md) for more information
 
+extern crate core;
+
 mod ir;
 mod iterator;
-mod tables;
 mod tests;
-mod matcher;
 mod serde;
 mod map;
+mod bi;
 
 ///Contains the `Builder` struct used to construct `Engine`s
 pub mod builder;

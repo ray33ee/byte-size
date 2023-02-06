@@ -1,3 +1,4 @@
+use std::str::from_utf8_unchecked;
 use crate::engine::Engine;
 use crate::error::Result;
 
@@ -102,7 +103,7 @@ impl CodeType {
                 }
             }
             CodeType::Custom(space, index) => {
-                write!(string, "{}{}", if *space { " " } else { "" }, engine.custom[*index])?;
+                write!(string, "{}{}", if *space { " " } else { "" }, unsafe { from_utf8_unchecked( engine.custom_map.get_by_right(index).unwrap() )} )?; //This unsafe is justified as the user can only input valid utf-8 strings into the custom map
             }
         }
 
